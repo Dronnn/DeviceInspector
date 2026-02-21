@@ -1,0 +1,41 @@
+# Planning & dev logs (internal)
+docs/
+logs/
+task.md
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude config
+.claude/
+
+# Xcode user-specific data
+*.xcuserstate
+xcuserdata/
+DerivedData/
+build/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.p12
+*.key
+Secrets.swift
+secrets/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods
+Pods/
+
+# Misc build artifacts
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.hmap
+*.moved-aside
