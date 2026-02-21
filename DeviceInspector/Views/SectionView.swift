@@ -60,6 +60,7 @@ struct ScanSectionView: View {
     let onScan: () -> Void
     let detailItems: [DeviceInfoItem]
     let detailTitle: String
+    let deviceCount: Int
     @State private var isExpanded = true
     @State private var showDevicesSheet = false
 
@@ -101,7 +102,7 @@ struct ScanSectionView: View {
                         HStack {
                             Image(systemName: "list.bullet.rectangle")
                                 .foregroundStyle(Color.accentColor)
-                            Text("Show \(detailItems.count) devices")
+                            Text("Show \(deviceCount) devices")
                                 .foregroundStyle(Color.accentColor)
                             Spacer()
                             Image(systemName: "chevron.right")

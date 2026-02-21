@@ -75,7 +75,8 @@ struct ContentView: View {
                                     isScanning: viewModel.isScanningBluetooth,
                                     onScan: { viewModel.scanBluetoothDevices() },
                                     detailItems: viewModel.bluetoothDetailItems,
-                                    detailTitle: "Bluetooth Devices"
+                                    detailTitle: "Bluetooth Devices",
+                                    deviceCount: viewModel.bluetoothDeviceCount
                                 )
                             } else if section.title == "Network Devices" {
                                 ScanSectionView(
@@ -87,7 +88,8 @@ struct ContentView: View {
                                     isScanning: viewModel.isScanningNetwork,
                                     onScan: { viewModel.scanNetworkDevices() },
                                     detailItems: viewModel.networkDetailItems,
-                                    detailTitle: "Network Devices"
+                                    detailTitle: "Network Devices",
+                                    deviceCount: viewModel.networkServiceCount
                                 )
                             } else {
                                 SectionView(

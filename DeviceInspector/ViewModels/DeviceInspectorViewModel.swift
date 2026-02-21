@@ -17,6 +17,8 @@ final class DeviceInspectorViewModel: ObservableObject {
     @Published var networkDevicesSection: DeviceInfoSection?
     @Published var bluetoothDetailItems: [DeviceInfoItem] = []
     @Published var networkDetailItems: [DeviceInfoItem] = []
+    @Published var bluetoothDeviceCount = 0
+    @Published var networkServiceCount = 0
 
     private let logger = Logger(subsystem: "com.deviceinspector", category: "ViewModel")
 
@@ -109,6 +111,7 @@ final class DeviceInspectorViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 5_000_000_000)
             btManager.stopScanning()
             let devices = btManager.discoveredPeripherals
+            bluetoothDeviceCount = devices.count
             bluetoothDetailItems = BluetoothDevicesCollector.collect(devices: devices).items
             bluetoothDevicesSection = BluetoothDevicesCollector.collectSummary(devices: devices)
             isScanningBluetooth = false
@@ -131,6 +134,7 @@ final class DeviceInspectorViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 5_000_000_000)
             netManager.stopScanning()
             let services = netManager.discoveredServices
+            networkServiceCount = services.count
             networkDetailItems = NetworkDevicesCollector.collect(services: services).items
             networkDevicesSection = NetworkDevicesCollector.collectSummary(services: services)
             isScanningNetwork = false
