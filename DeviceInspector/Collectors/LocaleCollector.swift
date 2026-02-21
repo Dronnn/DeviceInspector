@@ -1,10 +1,13 @@
 import Foundation
+import UIKit
 import os.log
 
 struct LocaleCollector {
     private static let logger = Logger(subsystem: "com.deviceinspector", category: "LocaleCollector")
 
-    static func collect() -> DeviceInfoSection {
+    // MARK: - Locale & Region
+
+    static func collectLocale() -> DeviceInfoSection {
         logger.debug("Collecting locale data")
         var items: [DeviceInfoItem] = []
 
@@ -13,11 +16,6 @@ struct LocaleCollector {
         items.append(DeviceInfoItem(
             key: "Locale Identifier",
             value: locale.identifier
-        ))
-
-        items.append(DeviceInfoItem(
-            key: "Language Code",
-            value: locale.language.languageCode?.identifier ?? "Unknown"
         ))
 
         items.append(DeviceInfoItem(
@@ -46,17 +44,16 @@ struct LocaleCollector {
             notes: "Thousands separator character."
         ))
 
+        let measurementValue: String
+        switch locale.measurementSystem {
+        case .metric: measurementValue = "Metric"
+        case .us: measurementValue = "US"
+        case .uk: measurementValue = "UK"
+        default: measurementValue = "Unknown"
+        }
         items.append(DeviceInfoItem(
-            key: "Uses Metric System",
-            value: locale.usesMetricSystem ? "Yes" : "No"
-        ))
-
-        // Preferred languages (first 10)
-        let preferredLanguages = Locale.preferredLanguages.prefix(10)
-        items.append(DeviceInfoItem(
-            key: "Preferred Languages",
-            value: preferredLanguages.joined(separator: ", "),
-            notes: "Ordered list of user's preferred languages (up to 10)."
+            key: "Measurement System",
+            value: measurementValue
         ))
 
         // TimeZone
@@ -113,15 +110,126 @@ struct LocaleCollector {
         logger.debug("Locale collection complete: \(items.count) items")
 
         return DeviceInfoSection(
-            title: "Locale & Languages",
-            icon: "globe",
+            title: "Locale & Region",
+            icon: "globe.europe.africa",
             items: items,
             explanation: """
-            Locale & Languages shows the user's locale settings including language, region, \
-            currency, number formatting, and measurement system preferences. Also includes \
+            Locale & Region shows the user's regional settings including locale identifier, \
+            region, currency, number formatting, and measurement system preferences. Also includes \
             timezone details (identifier, abbreviation, GMT offset, daylight saving time status) \
-            and the calendar type. Preferred languages are listed in the user's priority order. \
-            All data comes from Locale.current, TimeZone.current, and Calendar.current.
+            and the calendar type. All data comes from Locale.current, TimeZone.current, and \
+            Calendar.current.
+            """
+        )
+    }
+
+    // MARK: - Languages
+
+    static func collectLanguages() -> DeviceInfoSection {
+        logger.debug("Collecting languages data")
+        var items: [DeviceInfoItem] = []
+
+        let locale = Locale.current
+
+        items.append(DeviceInfoItem(
+            key: "Language Code",
+            value: locale.language.languageCode?.identifier ?? "Unknown"
+        ))
+
+        let preferredLanguages = Locale.preferredLanguages.prefix(10)
+        items.append(DeviceInfoItem(
+            key: "Preferred Languages",
+            value: preferredLanguages.joined(separator: ", "),
+            notes: "Ordered list of user's preferred languages (up to 10)."
+        ))
+
+        logger.debug("Languages collection complete: \(items.count) items")
+
+        return DeviceInfoSection(
+            title: "Languages",
+            icon: "character.book.closed",
+            items: items,
+            explanation: """
+            Language settings show the device's current language code and the user's preferred \
+            languages in priority order. The language code comes from Locale.current, while \
+            preferred languages come from Locale.preferredLanguages — the ordered list configured \
+            in Settings > General > Language & Region.
+            """
+        )
+    }
+
+    // MARK: - System Settings
+
+    @MainActor
+    static func collectSystemSettings() -> DeviceInfoSection {
+        logger.debug("Collecting system settings data")
+        var items: [DeviceInfoItem] = []
+
+        // 24-Hour Time
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        let timeString = formatter.string(from: Date())
+        let uses24Hour = !timeString.contains(formatter.amSymbol) && !timeString.contains(formatter.pmSymbol)
+        items.append(DeviceInfoItem(
+            key: "24-Hour Time",
+            value: uses24Hour ? "Yes" : "No",
+            notes: "Whether the device uses 24-hour time format vs. 12-hour AM/PM."
+        ))
+
+        // First Day of Week
+        let firstWeekday = Calendar.current.firstWeekday
+        let weekdayName: String
+        switch firstWeekday {
+        case 1: weekdayName = "Sunday"
+        case 2: weekdayName = "Monday"
+        case 3: weekdayName = "Tuesday"
+        case 4: weekdayName = "Wednesday"
+        case 5: weekdayName = "Thursday"
+        case 6: weekdayName = "Friday"
+        case 7: weekdayName = "Saturday"
+        default: weekdayName = "Unknown (\(firstWeekday))"
+        }
+        items.append(DeviceInfoItem(
+            key: "First Day of Week",
+            value: weekdayName,
+            notes: "Which day is considered the first day of the week in the user's calendar settings."
+        ))
+
+        // Temperature Unit
+        let tempFormatter = MeasurementFormatter()
+        tempFormatter.locale = Locale.current
+        tempFormatter.unitOptions = .naturalScale
+        let celsius = Measurement(value: 25, unit: UnitTemperature.celsius)
+        let formatted = tempFormatter.string(from: celsius)
+        let usesF = formatted.contains("F") || formatted.contains("\u{00B0}F")
+        items.append(DeviceInfoItem(
+            key: "Temperature Unit",
+            value: usesF ? "Fahrenheit" : "Celsius",
+            notes: "Temperature unit preference inferred from locale formatting of 25\u{00B0}C."
+        ))
+
+        // Active Keyboards
+        let inputModes = UITextInputMode.activeInputModes
+        let keyboards = inputModes.compactMap { $0.primaryLanguage }
+        items.append(DeviceInfoItem(
+            key: "Active Keyboards",
+            value: keyboards.isEmpty ? "None detected" : keyboards.joined(separator: ", "),
+            notes: "Languages/identifiers of the currently active keyboard input modes."
+        ))
+
+        logger.debug("System settings collection complete: \(items.count) items")
+
+        return DeviceInfoSection(
+            title: "System Settings",
+            icon: "gearshape",
+            items: items,
+            explanation: """
+            System Settings shows user preferences that affect app behavior: time format \
+            (12h vs 24h), first day of the week, temperature unit, and active keyboard \
+            input modes. These are derived from Locale, Calendar, MeasurementFormatter, \
+            and UITextInputMode APIs.
             """
         )
     }

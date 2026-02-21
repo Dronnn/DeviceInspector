@@ -21,11 +21,12 @@ struct ExtendedNetworkCollector {
             icon: "network",
             items: items,
             explanation: """
-            Extended Network shows HTTP proxy settings from the system configuration, \
-            VPN connection status detected via active network interfaces (utun/ipsec), \
+            Extended Network shows proxy settings (HTTP, HTTPS, SOCKS, PAC, WPAD) from the system \
+            configuration, VPN connection status detected via active network interfaces (utun/ipsec), \
             and network path information from NWPathMonitor including connection status, \
             whether the connection is expensive (cellular/hotspot) or constrained (Low Data Mode), \
-            and available interface types. Uses CFNetwork, Network framework, and POSIX getifaddrs.
+            DNS and IP version support, and detailed available interface information. \
+            Uses CFNetwork, Network framework, and POSIX getifaddrs.
             """
         )
     }
@@ -61,6 +62,70 @@ struct ExtendedNetworkCollector {
                 value: "\(port)"
             ))
         }
+
+        // HTTPS Proxy
+        let httpsProxyEnabled = proxySettings["HTTPSEnable"] as? Int == 1
+        items.append(DeviceInfoItem(
+            key: "HTTPS Proxy Enabled",
+            value: httpsProxyEnabled ? "Yes" : "No"
+        ))
+
+        if httpsProxyEnabled {
+            let httpsHost = proxySettings["HTTPSProxy"] as? String ?? "Unknown"
+            let httpsPort = proxySettings["HTTPSPort"] as? Int ?? 0
+            items.append(DeviceInfoItem(
+                key: "HTTPS Proxy Host",
+                value: httpsHost,
+                isSensitive: true
+            ))
+            items.append(DeviceInfoItem(
+                key: "HTTPS Proxy Port",
+                value: "\(httpsPort)"
+            ))
+        }
+
+        // SOCKS Proxy
+        let socksProxyEnabled = proxySettings["SOCKSEnable"] as? Int == 1
+        items.append(DeviceInfoItem(
+            key: "SOCKS Proxy Enabled",
+            value: socksProxyEnabled ? "Yes" : "No"
+        ))
+
+        if socksProxyEnabled {
+            let socksHost = proxySettings["SOCKSProxy"] as? String ?? "Unknown"
+            let socksPort = proxySettings["SOCKSPort"] as? Int ?? 0
+            items.append(DeviceInfoItem(
+                key: "SOCKS Proxy Host",
+                value: socksHost,
+                isSensitive: true
+            ))
+            items.append(DeviceInfoItem(
+                key: "SOCKS Proxy Port",
+                value: "\(socksPort)"
+            ))
+        }
+
+        // PAC URL
+        if let pacURL = proxySettings["ProxyAutoConfigURLString"] as? String {
+            items.append(DeviceInfoItem(
+                key: "PAC URL",
+                value: pacURL,
+                isSensitive: true
+            ))
+        } else {
+            items.append(DeviceInfoItem(
+                key: "PAC URL",
+                value: "Not Configured"
+            ))
+        }
+
+        // Auto-Discovery (WPAD)
+        let wpadEnabled = proxySettings["ProxyAutoDiscoveryEnable"] as? Int == 1
+        items.append(DeviceInfoItem(
+            key: "Auto-Discovery (WPAD)",
+            value: wpadEnabled ? "Enabled" : "Disabled",
+            notes: "Web Proxy Auto-Discovery protocol for automatic proxy configuration."
+        ))
 
         return items
     }
@@ -145,6 +210,169 @@ struct ExtendedNetworkCollector {
             notes: "Network interface types currently in use."
         ))
 
+        items.append(DeviceInfoItem(
+            key: "Supports DNS",
+            value: path.supportsDNS ? "Yes" : "No",
+            notes: "Whether the path can resolve DNS queries."
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "Supports IPv4",
+            value: path.supportsIPv4 ? "Yes" : "No",
+            notes: "Whether the path supports IPv4 connectivity."
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "Supports IPv6",
+            value: path.supportsIPv6 ? "Yes" : "No",
+            notes: "Whether the path supports IPv6 connectivity."
+        ))
+
+        for iface in path.availableInterfaces {
+            let typeString: String
+            switch iface.type {
+            case .wifi: typeString = "WiFi"
+            case .cellular: typeString = "Cellular"
+            case .wiredEthernet: typeString = "Wired Ethernet"
+            case .loopback: typeString = "Loopback"
+            case .other: typeString = "Other"
+            @unknown default: typeString = "Unknown"
+            }
+
+            items.append(DeviceInfoItem(
+                key: "Interface: \(iface.name)",
+                value: typeString,
+                details: [
+                    "Name": iface.name,
+                    "Type": typeString,
+                    "Index": "\(iface.index)"
+                ]
+            ))
+        }
+
         return items
+    }
+
+    // MARK: - DNS Servers
+
+    static func collectDNSServers() -> DeviceInfoSection {
+        logger.debug("Collecting DNS server information")
+        var items: [DeviceInfoItem] = []
+
+        // Read DNS servers from /etc/resolv.conf (accessible on iOS in most cases)
+        if let contents = try? String(contentsOfFile: "/etc/resolv.conf", encoding: .utf8) {
+            let lines = contents.components(separatedBy: "\n")
+            var serverIndex = 1
+            for line in lines {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("nameserver") {
+                    let parts = trimmed.split(separator: " ")
+                    if parts.count >= 2 {
+                        let server = String(parts[1])
+                        items.append(DeviceInfoItem(
+                            key: "DNS Server \(serverIndex)",
+                            value: server,
+                            notes: "From system resolver configuration"
+                        ))
+                        serverIndex += 1
+                    }
+                }
+            }
+        }
+
+        if items.isEmpty {
+            items.append(DeviceInfoItem(
+                key: "DNS Servers",
+                value: "Not Available",
+                availability: .notAvailable,
+                notes: "DNS server enumeration requires C interop (resolv.h) which is not available in pure Swift. DNS resolution is working if network is connected."
+            ))
+        }
+
+        logger.debug("DNS server collection complete: \(items.count) items")
+
+        return DeviceInfoSection(
+            title: "DNS Servers",
+            icon: "server.rack",
+            items: items,
+            explanation: """
+            DNS Servers lists the configured Domain Name System resolvers on this device. \
+            DNS servers translate human-readable domain names (like example.com) into IP addresses \
+            that devices use to communicate. These are typically provided by your network (router/ISP) \
+            or manually configured (e.g. 8.8.8.8 for Google DNS, 1.1.1.1 for Cloudflare). \
+            Retrieved from the system resolver configuration.
+            """
+        )
+    }
+
+    // MARK: - Public IP Address
+
+    static func collectPublicIP() async -> DeviceInfoSection {
+        logger.debug("Collecting public IP address")
+        var items: [DeviceInfoItem] = []
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.timeoutIntervalForRequest = 5
+        configuration.timeoutIntervalForResource = 5
+        let session = URLSession(configuration: configuration)
+
+        // IPv4
+        let ipv4Value: String
+        do {
+            let (data, _) = try await session.data(from: URL(string: "https://api.ipify.org?format=json")!)
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: String],
+               let ip = json["ip"] {
+                ipv4Value = ip
+            } else {
+                ipv4Value = "Unavailable"
+            }
+        } catch {
+            logger.error("Failed to fetch public IPv4: \(error.localizedDescription)")
+            ipv4Value = "Unavailable"
+        }
+
+        items.append(DeviceInfoItem(
+            key: "Public IPv4",
+            value: ipv4Value,
+            notes: ipv4Value == "Unavailable" ? "Requires an active internet connection to determine public IP." : nil,
+            isSensitive: true
+        ))
+
+        // IPv6
+        let ipv6Value: String
+        do {
+            let (data, _) = try await session.data(from: URL(string: "https://api6.ipify.org?format=json")!)
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: String],
+               let ip = json["ip"] {
+                ipv6Value = ip
+            } else {
+                ipv6Value = "Unavailable"
+            }
+        } catch {
+            logger.error("Failed to fetch public IPv6: \(error.localizedDescription)")
+            ipv6Value = "Unavailable"
+        }
+
+        items.append(DeviceInfoItem(
+            key: "Public IPv6",
+            value: ipv6Value,
+            notes: ipv6Value == "Unavailable" ? "Your network may not support IPv6, or requires an active internet connection." : nil,
+            isSensitive: true
+        ))
+
+        logger.debug("Public IP collection complete: \(items.count) items")
+
+        return DeviceInfoSection(
+            title: "Public IP",
+            icon: "globe",
+            items: items,
+            explanation: """
+            Public IP shows the external IP addresses visible to the internet for this device. \
+            The IPv4 and IPv6 addresses are obtained by querying the ipify.org API, which returns \
+            the IP address as seen by their server. This is the address that websites and services \
+            see when you connect. Marked as sensitive because it can reveal your approximate location \
+            and ISP. Requires an active internet connection.
+            """
+        )
     }
 }

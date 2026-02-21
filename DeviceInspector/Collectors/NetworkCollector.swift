@@ -2,6 +2,7 @@ import Foundation
 import Darwin
 import SystemConfiguration.CaptiveNetwork
 import CoreTelephony
+import NetworkExtension
 import os.log
 
 struct NetworkCollector {
@@ -34,7 +35,7 @@ struct NetworkCollector {
         }
         defer { freeifaddrs(ifaddr) }
 
-        var interfaceAddresses: [(name: String, family: String, address: String)] = []
+        var interfaceAddresses: [(name: String, family: String, address: String, details: [String: String])] = []
 
         var currentAddr: UnsafeMutablePointer<ifaddrs>? = firstAddr
         while let addr = currentAddr {
@@ -58,7 +59,61 @@ struct NetworkCollector {
 
                 if result == 0 {
                     let address = String(cString: hostname)
-                    interfaceAddresses.append((name: name, family: familyName, address: address))
+                    var details: [String: String] = [:]
+
+                    // Subnet mask
+                    if let netmask = interface.ifa_netmask {
+                        var maskHostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                        let maskResult = getnameinfo(
+                            netmask,
+                            socklen_t(netmask.pointee.sa_len),
+                            &maskHostname,
+                            socklen_t(maskHostname.count),
+                            nil,
+                            0,
+                            NI_NUMERICHOST
+                        )
+                        if maskResult == 0 {
+                            details["Subnet Mask"] = String(cString: maskHostname)
+                        }
+                    }
+
+                    // Broadcast or destination address
+                    let flags = interface.ifa_flags
+                    if let dstaddr = interface.ifa_dstaddr {
+                        var dstHostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                        let dstResult = getnameinfo(
+                            dstaddr,
+                            socklen_t(dstaddr.pointee.sa_len),
+                            &dstHostname,
+                            socklen_t(dstHostname.count),
+                            nil,
+                            0,
+                            NI_NUMERICHOST
+                        )
+                        if dstResult == 0 {
+                            let dstString = String(cString: dstHostname)
+                            if (flags & UInt32(IFF_POINTOPOINT)) != 0 {
+                                details["Destination Address"] = dstString
+                            } else {
+                                details["Broadcast Address"] = dstString
+                            }
+                        }
+                    }
+
+                    // Interface flags
+                    var flagNames: [String] = []
+                    if (flags & UInt32(IFF_UP)) != 0 { flagNames.append("UP") }
+                    if (flags & UInt32(IFF_RUNNING)) != 0 { flagNames.append("RUNNING") }
+                    if (flags & UInt32(IFF_LOOPBACK)) != 0 { flagNames.append("LOOPBACK") }
+                    if (flags & UInt32(IFF_MULTICAST)) != 0 { flagNames.append("MULTICAST") }
+                    if (flags & UInt32(IFF_BROADCAST)) != 0 { flagNames.append("BROADCAST") }
+                    if (flags & UInt32(IFF_POINTOPOINT)) != 0 { flagNames.append("POINTOPOINT") }
+                    if !flagNames.isEmpty {
+                        details["Flags"] = flagNames.joined(separator: ", ")
+                    }
+
+                    interfaceAddresses.append((name: name, family: familyName, address: address, details: details))
                 }
             }
 
@@ -77,7 +132,8 @@ struct NetworkCollector {
                 items.append(DeviceInfoItem(
                     key: "\(entry.name) (\(label)) \(entry.family)",
                     value: entry.address,
-                    notes: "Network interface \(entry.name) - \(label)"
+                    notes: "Network interface \(entry.name) - \(label)",
+                    details: entry.details.isEmpty ? nil : entry.details
                 ))
             }
         }
@@ -178,8 +234,68 @@ struct NetworkCollector {
             isSensitive: true
         ))
 
+        // Note: WiFi security type is collected asynchronously via collectWiFiSecurityType().
+        // The ViewModel should call that method separately and append the result to this section's items.
+
         logger.debug("WiFi collection complete: \(items.count) items")
         return wifiSection(items: items)
+    }
+
+    // MARK: - WiFi Extras (Security Type + RSSI)
+
+    /// Asynchronously fetches the current WiFi network's security type and RSSI via NEHotspotNetwork.
+    /// Returns an array of DeviceInfoItems to append to the WiFi section.
+    @available(iOS 15.0, *)
+    static func collectWiFiExtras() async -> [DeviceInfoItem] {
+        logger.debug("Collecting WiFi extras via NEHotspotNetwork")
+        var items: [DeviceInfoItem] = []
+
+        guard let network = await NEHotspotNetwork.fetchCurrent() else {
+            logger.debug("NEHotspotNetwork.fetchCurrent() returned nil — WiFi not connected")
+            items.append(DeviceInfoItem(
+                key: "Security Type",
+                value: "Not Connected",
+                availability: .available,
+                notes: "WiFi must be connected for security type detection. NEHotspotNetwork.fetchCurrent() returned nil."
+            ))
+            return items
+        }
+
+        let securityType = humanReadableSecurityType(network.securityType)
+        logger.debug("WiFi security type: \(securityType)")
+        items.append(DeviceInfoItem(
+            key: "Security Type",
+            value: securityType,
+            availability: .available,
+            notes: "Wi-Fi encryption type via NEHotspotNetwork"
+        ))
+
+        let rssi = network.signalStrength
+        items.append(DeviceInfoItem(
+            key: "Signal Strength (RSSI)",
+            value: String(format: "%.0f dBm", rssi),
+            notes: "Wi-Fi signal strength. Typical range: -30 (excellent) to -90 (very weak)."
+        ))
+
+        return items
+    }
+
+    @available(iOS 15.0, *)
+    private static func humanReadableSecurityType(_ type: NEHotspotNetworkSecurityType) -> String {
+        switch type {
+        case .open:
+            "Open"
+        case .personal:
+            "WPA/WPA2/WPA3 Personal"
+        case .enterprise:
+            "WPA/WPA2/WPA3 Enterprise"
+        case .unknown:
+            "Unknown"
+        case .WEP:
+            "WEP"
+        @unknown default:
+            "Unknown"
+        }
     }
 
     private static func wifiSection(items: [DeviceInfoItem]) -> DeviceInfoSection {

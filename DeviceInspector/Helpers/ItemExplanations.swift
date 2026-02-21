@@ -33,6 +33,16 @@ struct ItemExplanations {
             }
         }
 
+        // DNS Server dynamic keys (e.g. "DNS Server 1", "DNS Server 2")
+        if key.hasPrefix("DNS Server") {
+            return "A DNS server configured on this device for resolving domain names to IP addresses."
+        }
+
+        // Network interface dynamic keys (e.g. "Interface: en0 (WiFi)")
+        if key.hasPrefix("Interface:") {
+            return "A network interface available on the current network path, showing its type and configuration details."
+        }
+
         // Audio port dynamic keys
         if key.hasPrefix("Audio Input —") {
             return "An audio input source (microphone). The port name indicates which microphone is in use."
@@ -67,6 +77,11 @@ struct ItemExplanations {
         // Generic network interface fallback
         if key.contains("(") && (key.contains("Other") || key.contains("Link")) {
             return "An IP address on a network interface. Network interfaces are the device's connections to different networks."
+        }
+
+        // Clipboard dynamic keys
+        if key == "Has Text" || key == "Has Images" || key == "Has URLs" {
+            return "Whether the system clipboard currently contains this type of content. Checked via UIPasteboard.general."
         }
 
         return nil
@@ -455,8 +470,8 @@ struct ItemExplanations {
             "The character used to separate decimal places in numbers (e.g. \".\" in the US, \",\" in Germany).",
         "Grouping Separator":
             "The character used to group thousands in numbers (e.g. \",\" in the US giving \"1,000\", \".\" in Germany giving \"1.000\").",
-        "Uses Metric System":
-            "Whether the user's region uses the metric system (meters, kilograms) or imperial (feet, pounds).",
+        "Measurement System":
+            "The measurement system used in the user's region — Metric (meters, kilograms), US (feet, pounds), or UK (miles, stones).",
         "Preferred Languages":
             "The user's ranked list of preferred languages for app content, set in Settings > General > Language & Region.",
         "Timezone Identifier":
@@ -490,5 +505,99 @@ struct ItemExplanations {
             "Whether the system is limiting network usage, typically due to Low Data Mode being enabled by the user.",
         "Active Interface Types":
             "Which types of network connections are currently available (WiFi, Cellular, Wired, Loopback, etc.).",
+        "Supports DNS":
+            "Indicates whether the current network path supports DNS resolution. If false, the device cannot resolve domain names.",
+        "Supports IPv4":
+            "Indicates whether the current network path supports IPv4 connectivity.",
+        "Supports IPv6":
+            "Indicates whether the current network path supports IPv6 connectivity.",
+
+        // MARK: NetworkCollector — WiFi Security
+
+        "Security Type":
+            "The Wi-Fi encryption type of the currently connected network (e.g., Open, WPA2/WPA3 Personal, Enterprise). Retrieved via NEHotspotNetwork.",
+
+        // MARK: ExtendedNetworkCollector — Proxy (Extended)
+
+        "HTTPS Proxy Enabled":
+            "Whether an HTTPS proxy server is configured for secure web traffic.",
+        "HTTPS Proxy Host":
+            "The hostname or IP address of the configured HTTPS proxy server.",
+        "HTTPS Proxy Port":
+            "The port number used by the configured HTTPS proxy server.",
+        "SOCKS Proxy Enabled":
+            "Whether a SOCKS proxy server is configured. SOCKS proxies can handle any type of network traffic, not just HTTP.",
+        "SOCKS Proxy Host":
+            "The hostname or IP address of the configured SOCKS proxy server.",
+        "SOCKS Proxy Port":
+            "The port number used by the configured SOCKS proxy server.",
+        "PAC URL":
+            "Proxy Auto-Configuration URL. Points to a JavaScript file that determines which proxy to use for each URL request.",
+        "Auto-Discovery (WPAD)":
+            "Web Proxy Auto-Discovery. When enabled, the device automatically discovers proxy settings via DHCP or DNS.",
+
+        // MARK: ExtendedNetworkCollector — Public IP
+
+        "Public IPv4":
+            "Your device's public IPv4 address as seen by external servers. This is assigned by your ISP or network provider.",
+        "Public IPv6":
+            "Your device's public IPv6 address as seen by external servers. Not all networks support IPv6.",
+
+        // MARK: DisplayCollector — Extended
+
+        "Display Gamut":
+            "The color space supported by the display. P3 (Display P3) is a wider color gamut than sRGB, allowing richer and more vivid colors. Most modern iPhones use P3.",
+        "EDR Headroom":
+            "Extended Dynamic Range headroom — how much brighter than standard white the display can show. Values above 1.0 indicate HDR capability. Higher values mean brighter highlights.",
+        "Max Refresh Rate":
+            "The maximum refresh rate the display supports. 60 Hz is standard, 120 Hz (ProMotion) provides smoother scrolling and animations by refreshing the screen twice as often.",
+        "Interface Style":
+            "Whether the device is in Dark Mode or Light Mode, as set in Settings > Display & Brightness.",
+        "Display Zoom":
+            "Whether Display Zoom is enabled (Settings > Display & Brightness > Display Zoom). Zoomed mode makes everything on screen larger at the cost of fitting less content.",
+
+        // MARK: LocaleCollector — System Settings
+
+        "24-Hour Time":
+            "Whether the device uses 24-hour time format (e.g. 14:30) or 12-hour format with AM/PM (e.g. 2:30 PM). Set in Settings > General > Date & Time.",
+        "First Day of Week":
+            "Which day is considered the start of the week in calendars. Varies by region — Monday in most of Europe, Sunday in the US.",
+        "Temperature Unit":
+            "Whether temperatures are displayed in Celsius or Fahrenheit, inferred from the device's locale and regional settings.",
+        "Active Keyboards":
+            "The keyboard input modes currently enabled on the device. Each entry represents a language or input method the user has added in Settings > General > Keyboard.",
+
+        // MARK: ClipboardCollector
+
+        "Clipboard Items Count":
+            "The total number of distinct items currently stored on the system clipboard. Multiple items can exist when copying rich content.",
+
+        // MARK: CameraAudioCollector — Extended
+
+        "Output Volume":
+            "The current system volume level as a percentage. This reflects the hardware volume buttons and Control Center slider.",
+        "Silent Mode":
+            "Whether the physical mute switch (ring/silent) is engaged. No reliable public API exists — this uses a heuristic based on audio route analysis.",
+
+        // MARK: ProcessInfoCollector — Memory
+
+        "Available Memory":
+            "The amount of RAM currently available for this app to use. When this drops too low, iOS starts terminating background apps to free memory.",
+        "App Memory Usage":
+            "The resident memory (RAM) currently used by this app process. High usage may trigger iOS to terminate the app when memory is scarce.",
+
+        // MARK: EnvironmentSecurityCollector
+
+        "TestFlight Build":
+            "Whether this app was installed via TestFlight (beta testing). Detected by checking if the App Store receipt URL contains 'sandboxReceipt'.",
+        "Build Configuration":
+            "Whether the app was compiled in Debug mode (for development, with extra logging and assertions) or Release mode (optimized for production).",
+        "Jailbreak Indicators":
+            "Results of checking for common jailbreak artifacts — Cydia.app, APT directories, writable root filesystem. These are basic heuristic checks and may not detect sophisticated jailbreaks.",
+
+        // MARK: NetworkCollector — WiFi RSSI
+
+        "Signal Strength (RSSI)":
+            "Received Signal Strength Indicator for the current WiFi connection. Measured in dBm: -30 is excellent, -50 is good, -70 is fair, -90 is very weak.",
     ]
 }

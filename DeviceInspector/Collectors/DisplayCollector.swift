@@ -4,13 +4,13 @@ import os.log
 struct DisplayCollector {
     private static let logger = Logger(subsystem: "com.deviceinspector", category: "DisplayCollector")
 
+    // MARK: - Display
+
     @MainActor
-    static func collect() -> DeviceInfoSection {
-        logger.debug("Collecting display and locale data")
+    static func collectDisplay() -> DeviceInfoSection {
+        logger.debug("Collecting display data")
 
         var items: [DeviceInfoItem] = []
-
-        // MARK: - Screen Information
 
         let screen = UIScreen.main
         let bounds = screen.bounds
@@ -47,7 +47,7 @@ struct DisplayCollector {
             notes: "Current brightness level. Changes in real-time as user adjusts."
         ))
 
-        // MARK: - User Interface
+        // User Interface
 
         let device = UIDevice.current
         let idiomString: String
@@ -82,71 +82,71 @@ struct DisplayCollector {
             notes: "Dynamic Type setting chosen by the user in Settings > Accessibility."
         ))
 
-        // MARK: - Locale
-
-        let locale = Locale.current
-
+        // Display Gamut
+        let gamutString: String
+        switch screen.traitCollection.displayGamut {
+        case .P3: gamutString = "P3 (Wide Color)"
+        case .SRGB: gamutString = "sRGB"
+        case .unspecified: gamutString = "Unspecified"
+        @unknown default: gamutString = "Unknown"
+        }
         items.append(DeviceInfoItem(
-            key: "Locale Identifier",
-            value: locale.identifier
+            key: "Display Gamut",
+            value: gamutString,
+            notes: "Color space supported by the display. P3 is a wider gamut than sRGB."
         ))
 
-        let languageCode = locale.language.languageCode?.identifier ?? "Unknown"
+        // EDR Headroom
+        let edrHeadroom = screen.currentEDRHeadroom
         items.append(DeviceInfoItem(
-            key: "Language Code",
-            value: languageCode
+            key: "EDR Headroom",
+            value: String(format: "%.1fx", edrHeadroom),
+            notes: "Extended Dynamic Range headroom. Values above 1.0 indicate HDR capability."
         ))
 
-        let regionCode = locale.region?.identifier ?? "Unknown"
+        // Max Refresh Rate
         items.append(DeviceInfoItem(
-            key: "Region Code",
-            value: regionCode
+            key: "Max Refresh Rate",
+            value: "\(screen.maximumFramesPerSecond) Hz",
+            notes: "Maximum display refresh rate. 120 Hz = ProMotion adaptive refresh."
         ))
 
-        // MARK: - TimeZone
-
-        let timeZone = TimeZone.current
-
+        // Interface Style
+        let styleString: String
+        switch UITraitCollection.current.userInterfaceStyle {
+        case .dark: styleString = "Dark"
+        case .light: styleString = "Light"
+        case .unspecified: styleString = "Unspecified"
+        @unknown default: styleString = "Unknown"
+        }
         items.append(DeviceInfoItem(
-            key: "Time Zone Identifier",
-            value: timeZone.identifier
+            key: "Interface Style",
+            value: styleString,
+            notes: "Current appearance mode (Dark or Light) set in Settings > Display."
         ))
 
+        // Display Zoom
+        let isZoomed = screen.nativeScale != screen.scale
         items.append(DeviceInfoItem(
-            key: "Time Zone Abbreviation",
-            value: timeZone.abbreviation() ?? "Unknown"
-        ))
-
-        let gmtOffset = timeZone.secondsFromGMT()
-        let gmtHours = gmtOffset / 3600
-        let gmtMinutes = abs(gmtOffset % 3600) / 60
-        let gmtString = String(format: "UTC%+d:%02d (%d seconds)", gmtHours, gmtMinutes, gmtOffset)
-        items.append(DeviceInfoItem(
-            key: "GMT Offset",
-            value: gmtString
-        ))
-
-        // MARK: - Calendar
-
-        let calendar = Calendar.current
-        items.append(DeviceInfoItem(
-            key: "Calendar Identifier",
-            value: calendar.identifier.debugDescription
+            key: "Display Zoom",
+            value: isZoomed ? "Zoomed" : "Standard",
+            notes: "Whether Display Zoom is enabled in Settings > Display. Zoomed mode makes UI elements larger."
         ))
 
         logger.debug("Display collection complete: \(items.count) items")
 
         return DeviceInfoSection(
-            title: "Display & Locale",
+            title: "Display",
             icon: "display",
             items: items,
             explanation: """
             Display information includes the screen resolution in both logical points and physical \
-            pixels, the scale factor (2x for Retina, 3x for Super Retina), and current brightness. \
-            Locale information reflects the user's language, region, time zone, and calendar settings. \
-            Dynamic Type shows the preferred text size set by the user in Accessibility settings. \
-            Screen brightness is a live value and changes as the user adjusts it.
+            pixels, the scale factor (2x for Retina, 3x for Super Retina), current brightness, \
+            color gamut, EDR headroom for HDR content, maximum refresh rate, appearance mode, \
+            and Display Zoom status. Dynamic Type shows the preferred text size set by the user \
+            in Accessibility settings.
             """
         )
     }
+
 }

@@ -24,7 +24,10 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(ProcessInfoCollector.collect())
         allSections.append(UIDeviceCollector.collect())
         allSections.append(HardwareCollector.collect())
-        allSections.append(DisplayCollector.collect())
+        allSections.append(DisplayCollector.collectDisplay())
+        allSections.append(LocaleCollector.collectLocale())
+        allSections.append(LocaleCollector.collectLanguages())
+        allSections.append(LocaleCollector.collectSystemSettings())
         allSections.append(StorageCollector.collect())
         // Network: IP Addresses
         allSections.append(NetworkCollector.collectIPAddresses())
@@ -37,6 +40,20 @@ final class DeviceInspectorViewModel: ObservableObject {
         )
         // Network: Cellular (one section per SIM)
         allSections.append(contentsOf: NetworkCollector.collectCellularInfo())
+        // WiFi Extras (Security Type + RSSI, inserted into existing WiFi section)
+        if #available(iOS 15.0, *) {
+            let wifiExtras = await NetworkCollector.collectWiFiExtras()
+            if !wifiExtras.isEmpty, let wifiIndex = allSections.firstIndex(where: { $0.title == "WiFi" }) {
+                allSections[wifiIndex].items.append(contentsOf: wifiExtras)
+            }
+        }
+        // Extended Network (proxy, VPN, NWPath) — right after WiFi/Cellular
+        allSections.append(ExtendedNetworkCollector.collect())
+        // DNS Servers
+        allSections.append(ExtendedNetworkCollector.collectDNSServers())
+        // Public IP
+        allSections.append(await ExtendedNetworkCollector.collectPublicIP())
+
         allSections.append(
             IdentifiersCollector.collect(
                 attAuthorized: attStatus == .authorized
@@ -59,11 +76,8 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(AccessibilityCollector.collect())
         // O: App & Bundle
         allSections.append(AppBundleCollector.collect())
-        // P: Extended Network
-        allSections.append(ExtendedNetworkCollector.collect())
-        // Q: Locale & Languages
-        allSections.append(LocaleCollector.collect())
-
+        allSections.append(ClipboardCollector.collect())
+        allSections.append(EnvironmentSecurityCollector.collect())
         sections = allSections
         logger.debug("Collection complete: \(allSections.count) sections")
     }

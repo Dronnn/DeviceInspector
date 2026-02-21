@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import os.log
 
@@ -145,6 +146,36 @@ struct ProcessInfoCollector {
             value: info.globallyUniqueString,
             notes: "Temporary unique string generated at call time. Not a stable device identifier."
         ))
+
+        // App Memory
+        let availableMemory = os_proc_available_memory()
+        items.append(DeviceInfoItem(
+            key: "Available Memory",
+            value: ByteFormatter.format(UInt64(availableMemory)),
+            notes: "Memory currently available for the app before the system starts terminating background apps."
+        ))
+
+        var taskInfo = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size / MemoryLayout<natural_t>.size)
+        let result = withUnsafeMutablePointer(to: &taskInfo) { taskInfoPtr in
+            taskInfoPtr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rawPtr in
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), rawPtr, &count)
+            }
+        }
+        if result == KERN_SUCCESS {
+            items.append(DeviceInfoItem(
+                key: "App Memory Usage",
+                value: ByteFormatter.format(UInt64(taskInfo.resident_size)),
+                notes: "Current resident memory (RAM) used by this app process."
+            ))
+        } else {
+            items.append(DeviceInfoItem(
+                key: "App Memory Usage",
+                value: "Not available",
+                availability: .notAvailable,
+                notes: "Could not query task_info for memory usage."
+            ))
+        }
 
         logger.debug("ProcessInfo collection complete: \(items.count) items")
 

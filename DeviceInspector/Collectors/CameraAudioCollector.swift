@@ -172,6 +172,24 @@ struct CameraAudioCollector {
             notes: "Whether another app is currently playing audio."
         ))
 
+        items.append(DeviceInfoItem(
+            key: "Output Volume",
+            value: String(format: "%.0f%%", session.outputVolume * 100),
+            notes: "Current system output volume (0-100%). Changes as the user adjusts volume buttons."
+        ))
+
+        let silentModeGuess: String
+        if session.currentRoute.outputs.isEmpty && session.outputVolume > 0 {
+            silentModeGuess = "Possibly Active"
+        } else {
+            silentModeGuess = "Not Determinable"
+        }
+        items.append(DeviceInfoItem(
+            key: "Silent Mode",
+            value: silentModeGuess,
+            notes: "No reliable public API exists for detecting the mute switch. This is a heuristic only."
+        ))
+
         return items
     }
 

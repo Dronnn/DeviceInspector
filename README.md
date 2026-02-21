@@ -6,7 +6,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 
 ## Features
 
-- Collects device information across 17 categories
+- Collects device information across 21 categories
 - Privacy mode (sensitive data hidden by default)
 - Export to JSON via share sheet
 - Copy all data to clipboard
@@ -22,6 +22,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - OS version, processors, active processors
 - Physical memory, thermal state
 - System uptime, low-power mode
+- Available memory, app memory usage (Mach task_info)
 
 ### 2. Device Info
 - Device name, model, localized model
@@ -37,13 +38,14 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - OS build number
 - CPU architecture, core count
 
-### 4. Display & Locale
+### 4. Display
 - Screen bounds, native bounds, scale, native scale
 - Screen brightness
 - Dynamic Type content size category
-- Locale (identifier, language, region, currency)
-- Timezone (name, abbreviation, seconds from GMT)
-- Calendar (identifier, first weekday)
+- Display gamut (P3/sRGB), EDR headroom
+- Max refresh rate (ProMotion)
+- Interface style (Dark/Light mode)
+- Display Zoom detection
 
 ### 5. Storage
 - Total disk space
@@ -52,8 +54,9 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - Volume capacity information
 
 ### 6. Network
-- IP addresses by interface (en0, pdp_ip0, etc.)
-- WiFi SSID and BSSID (requires Location permission)
+- IP addresses by interface (en0, pdp_ip0, etc.) with subnet masks and flags
+- WiFi SSID, BSSID (requires Location permission)
+- WiFi security type, signal strength (RSSI)
 - Carrier name, mobile country code, mobile network code
 - Radio access technology (LTE, 5G, etc.)
 
@@ -76,6 +79,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 ### 10. Camera & Audio
 - All camera devices (type, position, flash, torch)
 - Audio session (sample rate, latency, routes, channels)
+- Output volume, silent mode detection (heuristic)
 - Haptic engine capabilities
 
 ### 11. Wireless Technologies
@@ -101,15 +105,39 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - File system paths (Documents, Caches, Temp)
 
 ### 16. Extended Network
-- HTTP proxy settings
+- HTTP/HTTPS/SOCKS proxy settings
+- Proxy auto-configuration (PAC URL, WPAD)
 - VPN detection (utun/ipsec interfaces)
 - NWPathMonitor (status, expensive, constrained, interface types)
+- DNS support, IPv4/IPv6 support
+- Available interfaces detail
+- DNS servers (/etc/resolv.conf)
+- Public IP (IPv4/IPv6 via ipify.org)
 
 ### 17. Locale & Languages
 - Currency code/symbol, decimal/grouping separators
 - Metric system preference
 - Preferred languages list
 - Timezone DST status, calendar identifier
+
+### 18. System Settings
+- 24-hour time format detection
+- First day of week
+- Temperature unit (Celsius/Fahrenheit)
+- Active keyboard input modes
+
+### 19. Clipboard
+- Clipboard content type detection (text, images, URLs)
+- Item count (no actual content is read)
+
+### 20. Environment Security
+- TestFlight build detection
+- Debug/Release build configuration
+- Jailbreak indicator checks
+
+### 21. WiFi Extras
+- WiFi security type (WPA2/WPA3/Open/WEP)
+- Signal strength (RSSI in dBm)
 
 ## iOS Limitations & What's NOT Available
 
@@ -123,7 +151,7 @@ iOS enforces strict privacy boundaries. The following data **cannot** be accesse
 | **UDID** | Not available to apps |
 | **Phone number** | Not available to apps |
 | **SIM card number (ICCID)** | Not available via public API |
-| **Signal strength (dBm)** | Not available via public API |
+| **Cellular signal strength (dBm)** | Not available via public API (WiFi RSSI is available) |
 | **Neighboring WiFi networks** | Only the currently connected network is accessible |
 | **Installed apps list** | Not available since iOS 9 |
 | **Hardware serial number** | Not available via public API |
@@ -181,7 +209,7 @@ iOS enforces strict privacy boundaries. The following data **cannot** be accesse
 - **Wireless**: CoreNFC, CoreBluetooth, NearbyInteraction
 - **Graphics/AR**: Metal, ARKit
 - **Permissions**: Photos, Contacts, EventKit, Speech, UserNotifications, Intents
-- **Network**: Network (NWPathMonitor), CFNetwork
+- **Network**: Network (NWPathMonitor), NetworkExtension (NEHotspotNetwork), CFNetwork
 
 ## Architecture
 
@@ -206,7 +234,7 @@ DeviceInspector/
 │   ├── ProcessInfoCollector.swift     # ProcessInfo data
 │   ├── UIDeviceCollector.swift        # UIDevice data
 │   ├── HardwareCollector.swift        # sysctl hardware info
-│   ├── DisplayCollector.swift         # Screen, locale, timezone
+│   ├── DisplayCollector.swift         # Screen, gamut, refresh rate
 │   ├── StorageCollector.swift         # Disk space
 │   ├── NetworkCollector.swift         # IP, WiFi, carrier
 │   ├── IdentifiersCollector.swift     # IDFV, IDFA
@@ -219,20 +247,26 @@ DeviceInspector/
 │   ├── AccessibilityCollector.swift  # UIAccessibility flags
 │   ├── AppBundleCollector.swift      # Bundle info, paths
 │   ├── ExtendedNetworkCollector.swift # Proxy, VPN, NWPathMonitor
-│   └── LocaleCollector.swift         # Locale, currency, DST
+│   ├── LocaleCollector.swift         # Locale, currency, DST
+│   ├── ClipboardCollector.swift    # Clipboard metadata
+│   └── EnvironmentSecurityCollector.swift # Build/security environment
 ├── ViewModels/
 │   └── DeviceInspectorViewModel.swift # Main view model
 ├── Views/
 │   ├── ContentView.swift              # Main screen
 │   ├── SectionView.swift              # Expandable section
 │   ├── ItemRowView.swift              # Single info item
+│   ├── ItemDetailSheet.swift          # Item detail half-sheet
 │   ├── AvailabilityBadge.swift        # Status badge
 │   ├── ExplanationSheet.swift         # Section explanation
 │   ├── PermissionStatusView.swift     # Permission UI
 │   └── ActivityViewControllerRepresentable.swift  # Share sheet
 └── Helpers/
     ├── LocationManagerDelegate.swift  # CLLocationManager wrapper
-    └── ByteFormatter.swift            # Byte formatting
+    ├── BluetoothManagerDelegate.swift # CBCentralManager wrapper
+    ├── ByteFormatter.swift            # Byte formatting
+    ├── ItemExplanations.swift         # Per-item explanation dictionary
+    └── PermissionRequester.swift      # Permission request helpers
 ```
 
 ## Privacy

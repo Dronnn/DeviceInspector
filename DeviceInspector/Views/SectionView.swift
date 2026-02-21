@@ -7,7 +7,6 @@ struct SectionView: View {
     let expandAllSignal: Int
     let expandSectionID: String?
     @State private var isExpanded = true
-    @State private var showExplanation = false
 
     var body: some View {
         Section {
@@ -16,13 +15,7 @@ struct SectionView: View {
                     ItemRowView(item: item, privacyMode: privacyMode)
                 }
 
-                Button {
-                    showExplanation = true
-                } label: {
-                    Label("Explain", systemImage: "questionmark.circle")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+                ExplainRowView(title: section.title, explanation: section.explanation)
             }
         } header: {
             Button {
@@ -54,8 +47,29 @@ struct SectionView: View {
                 withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
             }
         }
+    }
+}
+
+private struct ExplainRowView: View {
+    let title: String
+    let explanation: String
+    @State private var showExplanation = false
+
+    var body: some View {
+        Button {
+            showExplanation = true
+        } label: {
+            HStack {
+                Label("Explain", systemImage: "questionmark.circle")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
         .sheet(isPresented: $showExplanation) {
-            ExplanationSheet(title: section.title, explanation: section.explanation)
+            ExplanationSheet(title: title, explanation: explanation)
         }
     }
 }
