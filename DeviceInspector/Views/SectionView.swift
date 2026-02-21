@@ -111,6 +111,9 @@ struct ScanSectionView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .sheet(isPresented: $showDevicesSheet) {
+                        DiscoveredDevicesSheet(title: detailTitle, items: detailItems)
+                    }
                 }
 
                 ExplainRowView(title: section.title, explanation: section.explanation)
@@ -144,9 +147,6 @@ struct ScanSectionView: View {
             if newID == section.id {
                 withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
             }
-        }
-        .sheet(isPresented: $showDevicesSheet) {
-            DiscoveredDevicesSheet(title: detailTitle, items: detailItems)
         }
     }
 }

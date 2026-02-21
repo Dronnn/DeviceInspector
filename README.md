@@ -6,7 +6,9 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 
 ## Features
 
-- Collects device information across 21 categories
+- Collects device information across 23 categories
+- **Bluetooth device scanning** — discover nearby BLE peripherals with RSSI, advertisement data
+- **Local network discovery** — find devices via Bonjour (AirPlay, HomeKit, printers, SSH, etc.)
 - Privacy mode (sensitive data hidden by default)
 - Export to JSON via share sheet
 - Copy all data to clipboard
@@ -14,7 +16,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - Expandable sections with explanations
 - Per-item context menu for copying
 - Native `.searchable` search bar with real-time keyword filtering
-- Permission management UI (Location, App Tracking Transparency)
+- Permission management UI (Location, App Tracking Transparency, Bluetooth)
 
 ## Categories
 
@@ -88,24 +90,36 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - Bluetooth authorization status
 - Ultra Wideband (UWB/U1 chip) support
 
-### 12. GPU & AR
+### 12. Bluetooth Devices (Interactive Scan)
+- Scan for nearby BLE peripherals (5-second scan)
+- Device name, Core Bluetooth UUID, RSSI signal strength with quality label
+- Advertisement data: connectable status, TX power level, manufacturer data (hex), service UUIDs
+- Results shown in a dedicated detail sheet
+
+### 13. Network Devices (Interactive Scan)
+- Bonjour/mDNS service discovery across 12 service types
+- AirPlay, HomeKit, printers (IPP), SSH, HTTP, SMB file sharing, Chromecast, Spotify Connect, Apple Companion, Sleep Proxy
+- Service name, type, domain, endpoint
+- Results shown in a dedicated detail sheet
+
+### 14. GPU & AR
 - Metal GPU name, buffer limits, threadgroup parameters
 - GPU family support level
 - ARKit configurations (world, face, body, image tracking)
 
-### 13. Permission Statuses
+### 15. Permission Statuses
 - Read-only status for 13 permissions (Camera, Microphone, Photos, Contacts, Calendar, Reminders, Location, Motion, Speech, Notifications, Bluetooth, ATT, Siri)
 
-### 14. Accessibility
+### 16. Accessibility
 - 21 UIAccessibility flags (VoiceOver, Switch Control, Reduce Motion, Bold Text, Grayscale, etc.)
 - Hearing device pairing status
 
-### 15. App & Bundle
+### 17. App & Bundle
 - Bundle identifier, version, build number
 - Simulator vs physical device detection
 - File system paths (Documents, Caches, Temp)
 
-### 16. Extended Network
+### 18. Extended Network
 - HTTP/HTTPS/SOCKS proxy settings
 - Proxy auto-configuration (PAC URL, WPAD)
 - VPN detection (utun/ipsec interfaces)
@@ -115,28 +129,28 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - DNS servers (/etc/resolv.conf)
 - Public IP (IPv4/IPv6 via ipify.org)
 
-### 17. Locale & Languages
+### 19. Locale & Languages
 - Currency code/symbol, decimal/grouping separators
 - Metric system preference
 - Preferred languages list
 - Timezone DST status, calendar identifier
 
-### 18. System Settings
+### 20. System Settings
 - 24-hour time format detection
 - First day of week
 - Temperature unit (Celsius/Fahrenheit)
 - Active keyboard input modes
 
-### 19. Clipboard
+### 21. Clipboard
 - Clipboard content type detection (text, images, URLs)
 - Item count (no actual content is read)
 
-### 20. Environment Security
+### 22. Environment Security
 - TestFlight build detection
 - Debug/Release build configuration
 - Jailbreak indicator checks
 
-### 21. WiFi Extras
+### 23. WiFi Extras
 - WiFi security type (WPA2/WPA3/Open/WEP)
 - Signal strength (RSSI in dBm)
 
@@ -178,6 +192,23 @@ iOS enforces strict privacy boundaries. The following data **cannot** be accesse
   2. User grants permission via `ATTrackingManager`
 - **If denied**: IDFA shows "Not authorized"
 
+### Bluetooth
+
+- **Purpose**: Required to scan for nearby BLE devices
+- **iOS Requirements**:
+  1. `NSBluetoothAlwaysUsageDescription` in Info.plist
+  2. User grants Bluetooth permission
+- **If denied**: Bluetooth scan button is disabled, authorization shows "Denied"
+
+### Local Network
+
+- **Purpose**: Required to discover devices and services on the local network via Bonjour
+- **iOS Requirements**:
+  1. `NSLocalNetworkUsageDescription` in Info.plist
+  2. `NSBonjourServices` listing discovered service types
+  3. User grants local network permission (system prompt on first scan)
+- **If denied**: Network device discovery returns no results
+
 ## Info.plist Keys
 
 ```xml
@@ -194,6 +225,8 @@ iOS enforces strict privacy boundaries. The following data **cannot** be accesse
 <key>NSCameraUsageDescription</key>
 <key>NFCReaderUsageDescription</key>
 <key>NSSiriUsageDescription</key>
+<key>NSLocalNetworkUsageDescription</key>
+<key>NSBonjourServices</key> <!-- 12 service types -->
 ```
 
 ## Entitlements
@@ -243,6 +276,8 @@ DeviceInspector/
 │   ├── SensorsCollector.swift        # CoreMotion sensors
 │   ├── CameraAudioCollector.swift    # Cameras, audio session, haptics
 │   ├── WirelessCollector.swift       # NFC, Bluetooth, UWB
+│   ├── BluetoothDevicesCollector.swift # BLE device scan results
+│   ├── NetworkDevicesCollector.swift  # Bonjour service discovery results
 │   ├── GPUARCollector.swift          # Metal GPU, ARKit
 │   ├── PermissionsCollector.swift    # All permission statuses
 │   ├── AccessibilityCollector.swift  # UIAccessibility flags
@@ -258,13 +293,15 @@ DeviceInspector/
 │   ├── SectionView.swift              # Expandable section
 │   ├── ItemRowView.swift              # Single info item
 │   ├── ItemDetailSheet.swift          # Item detail half-sheet
+│   ├── DiscoveredDevicesSheet.swift   # BT/Network scan results sheet
 │   ├── AvailabilityBadge.swift        # Status badge
 │   ├── ExplanationSheet.swift         # Section explanation
 │   ├── PermissionStatusView.swift     # Permission UI
 │   └── ActivityViewControllerRepresentable.swift  # Share sheet
 └── Helpers/
     ├── LocationManagerDelegate.swift  # CLLocationManager wrapper
-    ├── BluetoothManagerDelegate.swift # CBCentralManager wrapper
+    ├── BluetoothManagerDelegate.swift # CBCentralManager wrapper + BLE scanning
+    ├── NetworkDiscoveryManager.swift  # NWBrowser Bonjour service discovery
     ├── ByteFormatter.swift            # Byte formatting
     ├── ItemExplanations.swift         # Per-item explanation dictionary
     └── PermissionRequester.swift      # Permission request helpers
@@ -273,7 +310,7 @@ DeviceInspector/
 ## Privacy
 
 - All data is collected and displayed locally only
-- No network requests are made
+- Minimal network requests: Public IP check (ipify.org), Bonjour discovery (local network only)
 - No analytics or tracking SDKs
 - Sensitive data (device name, SSID, identifiers) hidden by default in Privacy Mode
 - User must explicitly tap Refresh to collect data
