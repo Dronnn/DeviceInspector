@@ -315,6 +315,7 @@ DeviceInspector/
 - Sensitive data (device name, SSID, identifiers) hidden by default in Privacy Mode
 - User must explicitly tap Refresh to collect data
 - Console logging uses `os.log` with no personal data in debug logs
+- [Privacy Policy](docs/privacy-policy.md)
 
 ## Building
 
