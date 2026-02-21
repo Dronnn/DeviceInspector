@@ -15,6 +15,8 @@ final class DeviceInspectorViewModel: ObservableObject {
     @Published var isScanningNetwork = false
     @Published var bluetoothDevicesSection: DeviceInfoSection?
     @Published var networkDevicesSection: DeviceInfoSection?
+    @Published var bluetoothDetailItems: [DeviceInfoItem] = []
+    @Published var networkDetailItems: [DeviceInfoItem] = []
 
     private let logger = Logger(subsystem: "com.deviceinspector", category: "ViewModel")
 
@@ -77,11 +79,11 @@ final class DeviceInspectorViewModel: ObservableObject {
         // K: Wireless Technologies
         allSections.append(WirelessCollector.collect())
 
-        // Bluetooth Devices (scan results or placeholder)
-        allSections.append(bluetoothDevicesSection ?? BluetoothDevicesCollector.collect(devices: []))
+        // Bluetooth Devices (summary only — full results in bluetoothDetailItems)
+        allSections.append(bluetoothDevicesSection ?? BluetoothDevicesCollector.collectSummary(devices: []))
 
-        // Network Devices (scan results or placeholder)
-        allSections.append(networkDevicesSection ?? NetworkDevicesCollector.collect(services: []))
+        // Network Devices (summary only — full results in networkDetailItems)
+        allSections.append(networkDevicesSection ?? NetworkDevicesCollector.collectSummary(services: []))
 
         // L: GPU & AR
         allSections.append(GPUARCollector.collect())
@@ -106,14 +108,16 @@ final class DeviceInspectorViewModel: ObservableObject {
         Task {
             try? await Task.sleep(nanoseconds: 5_000_000_000)
             btManager.stopScanning()
-            bluetoothDevicesSection = BluetoothDevicesCollector.collect(devices: btManager.discoveredPeripherals)
+            let devices = btManager.discoveredPeripherals
+            bluetoothDetailItems = BluetoothDevicesCollector.collect(devices: devices).items
+            bluetoothDevicesSection = BluetoothDevicesCollector.collectSummary(devices: devices)
             isScanningBluetooth = false
-            // Update the matching section in-place
+            // Update the matching section in-place with summary
             if let btSection = bluetoothDevicesSection,
                let index = sections.firstIndex(where: { $0.title == "Bluetooth Devices" }) {
                 sections[index] = btSection
             }
-            logger.debug("Bluetooth scan complete: \(btManager.discoveredPeripherals.count) devices")
+            logger.debug("Bluetooth scan complete: \(devices.count) devices")
         }
     }
 
@@ -126,14 +130,16 @@ final class DeviceInspectorViewModel: ObservableObject {
         Task {
             try? await Task.sleep(nanoseconds: 5_000_000_000)
             netManager.stopScanning()
-            networkDevicesSection = NetworkDevicesCollector.collect(services: netManager.discoveredServices)
+            let services = netManager.discoveredServices
+            networkDetailItems = NetworkDevicesCollector.collect(services: services).items
+            networkDevicesSection = NetworkDevicesCollector.collectSummary(services: services)
             isScanningNetwork = false
-            // Update the matching section in-place
+            // Update the matching section in-place with summary
             if let netSection = networkDevicesSection,
                let index = sections.firstIndex(where: { $0.title == "Network Devices" }) {
                 sections[index] = netSection
             }
-            logger.debug("Network scan complete: \(netManager.discoveredServices.count) services")
+            logger.debug("Network scan complete: \(services.count) services")
         }
     }
 

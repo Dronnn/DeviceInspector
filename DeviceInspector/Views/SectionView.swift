@@ -58,7 +58,10 @@ struct ScanSectionView: View {
     let expandSectionID: String?
     let isScanning: Bool
     let onScan: () -> Void
+    let detailItems: [DeviceInfoItem]
+    let detailTitle: String
     @State private var isExpanded = true
+    @State private var showDevicesSheet = false
 
     var body: some View {
         Section {
@@ -88,6 +91,26 @@ struct ScanSectionView: View {
 
                 ForEach(section.items) { item in
                     ItemRowView(item: item, privacyMode: privacyMode)
+                }
+
+                // Show Devices button (only when there are results)
+                if !detailItems.isEmpty {
+                    Button {
+                        showDevicesSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "list.bullet.rectangle")
+                                .foregroundStyle(Color.accentColor)
+                            Text("Show \(detailItems.count) devices")
+                                .foregroundStyle(Color.accentColor)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 ExplainRowView(title: section.title, explanation: section.explanation)
@@ -121,6 +144,9 @@ struct ScanSectionView: View {
             if newID == section.id {
                 withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
             }
+        }
+        .sheet(isPresented: $showDevicesSheet) {
+            DiscoveredDevicesSheet(title: detailTitle, items: detailItems)
         }
     }
 }

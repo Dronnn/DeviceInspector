@@ -47,6 +47,7 @@
 		000200000000000000000038 /* BluetoothDevicesCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000041 /* BluetoothDevicesCollector.swift */; };
 		000200000000000000000039 /* NetworkDevicesCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000042 /* NetworkDevicesCollector.swift */; };
 		000200000000000000000040 /* NetworkDiscoveryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000043 /* NetworkDiscoveryManager.swift */; };
+		000200000000000000000041 /* DiscoveredDevicesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000044 /* DiscoveredDevicesSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +94,7 @@
 		000100000000000000000041 /* BluetoothDevicesCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDevicesCollector.swift; sourceTree = "<group>"; };
 		000100000000000000000042 /* NetworkDevicesCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDevicesCollector.swift; sourceTree = "<group>"; };
 		000100000000000000000043 /* NetworkDiscoveryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDiscoveryManager.swift; sourceTree = "<group>"; };
+		000100000000000000000044 /* DiscoveredDevicesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveredDevicesSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,6 +188,7 @@
 				000100000000000000000017 /* PermissionStatusView.swift */,
 				000100000000000000000018 /* ActivityViewControllerRepresentable.swift */,
 				000100000000000000000035 /* ItemDetailSheet.swift */,
+				000100000000000000000044 /* DiscoveredDevicesSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -320,6 +323,7 @@
 				000200000000000000000038 /* BluetoothDevicesCollector.swift in Sources */,
 				000200000000000000000039 /* NetworkDevicesCollector.swift in Sources */,
 				000200000000000000000040 /* NetworkDiscoveryManager.swift in Sources */,
+				000200000000000000000041 /* DiscoveredDevicesSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

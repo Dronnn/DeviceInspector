@@ -86,4 +86,35 @@ struct BluetoothDevicesCollector {
             """
         )
     }
+
+    static func collectSummary(devices: [DiscoveredPeripheral]) -> DeviceInfoSection {
+        var items: [DeviceInfoItem] = []
+
+        if devices.isEmpty {
+            items.append(DeviceInfoItem(
+                key: "Bluetooth Devices Found",
+                value: "Tap Scan to discover nearby BLE devices",
+                notes: "Scanning requires Bluetooth permission and Bluetooth to be turned on."
+            ))
+        } else {
+            items.append(DeviceInfoItem(
+                key: "Bluetooth Devices Found",
+                value: "\(devices.count) devices",
+                notes: "Tap \"Show Devices\" to see the full list."
+            ))
+        }
+
+        return DeviceInfoSection(
+            title: "Bluetooth Devices",
+            icon: "wave.3.right",
+            items: items,
+            explanation: """
+            Bluetooth Devices shows nearby Bluetooth Low Energy (BLE) peripherals discovered \
+            during a scan. Each device displays its advertised name, a Core Bluetooth identifier \
+            (not the hardware MAC address), signal strength (RSSI), connectability, and optional \
+            advertisement data such as TX power, manufacturer data, and service UUIDs. Tap Scan \
+            to start a 5-second discovery. Requires Bluetooth permission.
+            """
+        )
+    }
 }

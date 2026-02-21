@@ -77,4 +77,35 @@ struct NetworkDevicesCollector {
             """
         )
     }
+
+    static func collectSummary(services: [DiscoveredNetworkService]) -> DeviceInfoSection {
+        var items: [DeviceInfoItem] = []
+
+        if services.isEmpty {
+            items.append(DeviceInfoItem(
+                key: "Network Services Found",
+                value: "Tap Scan to discover devices on your local network",
+                notes: "Discovery uses Bonjour (mDNS) to find services. Requires local network permission."
+            ))
+        } else {
+            items.append(DeviceInfoItem(
+                key: "Network Services Found",
+                value: "\(services.count) services",
+                notes: "Tap \"Show Devices\" to see the full list."
+            ))
+        }
+
+        return DeviceInfoSection(
+            title: "Network Devices",
+            icon: "network",
+            items: items,
+            explanation: """
+            Network Devices shows services discovered on your local network using Bonjour \
+            (mDNS/DNS-SD). This includes web servers, AirPlay devices, printers, HomeKit \
+            accessories, file shares, and more. Each entry shows the service name, type, domain, \
+            and endpoint. Tap Scan to start a 5-second discovery. Requires local network permission. \
+            Uses the Network framework's NWBrowser.
+            """
+        )
+    }
 }
