@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var viewModel = DeviceInspectorViewModel()
     @StateObject private var locationManager = LocationManagerDelegate()
     @StateObject private var bluetoothManager = BluetoothManagerDelegate()
+    @StateObject private var networkDiscoveryManager = NetworkDiscoveryManager()
     @State private var jsonExportURL: URL?
     @State private var collapseAllSignal = 0
     @State private var expandAllSignal = 0
@@ -64,13 +65,35 @@ struct ContentView: View {
 
                         // MARK: - Device Info Sections
                         ForEach(filteredSections) { section in
-                            SectionView(
-                                section: section,
-                                privacyMode: viewModel.privacyMode,
-                                collapseAllSignal: collapseAllSignal,
-                                expandAllSignal: expandAllSignal,
-                                expandSectionID: expandSectionID
-                            )
+                            if section.title == "Bluetooth Devices" {
+                                ScanSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    isScanning: viewModel.isScanningBluetooth,
+                                    onScan: { viewModel.scanBluetoothDevices() }
+                                )
+                            } else if section.title == "Network Devices" {
+                                ScanSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    isScanning: viewModel.isScanningNetwork,
+                                    onScan: { viewModel.scanNetworkDevices() }
+                                )
+                            } else {
+                                SectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID
+                                )
+                            }
                         }
                     }
                     .listStyle(.insetGrouped)
@@ -142,6 +165,8 @@ struct ContentView: View {
                     }
                     .task {
                         viewModel.locationStatus = locationManager.authorizationStatus
+                        viewModel.bluetoothManager = bluetoothManager
+                        viewModel.networkDiscoveryManager = networkDiscoveryManager
                         await viewModel.refresh()
                     }
                     .onChange(of: locationManager.authorizationStatus) { newStatus in

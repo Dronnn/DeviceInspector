@@ -11,7 +11,15 @@ final class DeviceInspectorViewModel: ObservableObject {
     @Published var locationStatus: CLAuthorizationStatus = .notDetermined
     @Published var attStatus: ATTrackingManager.AuthorizationStatus = .notDetermined
 
+    @Published var isScanningBluetooth = false
+    @Published var isScanningNetwork = false
+    @Published var bluetoothDevicesSection: DeviceInfoSection?
+    @Published var networkDevicesSection: DeviceInfoSection?
+
     private let logger = Logger(subsystem: "com.deviceinspector", category: "ViewModel")
+
+    var bluetoothManager: BluetoothManagerDelegate?
+    var networkDiscoveryManager: NetworkDiscoveryManager?
 
     func refresh() async {
         isLoading = true
@@ -68,6 +76,13 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(CameraAudioCollector.collect())
         // K: Wireless Technologies
         allSections.append(WirelessCollector.collect())
+
+        // Bluetooth Devices (scan results or placeholder)
+        allSections.append(bluetoothDevicesSection ?? BluetoothDevicesCollector.collect(devices: []))
+
+        // Network Devices (scan results or placeholder)
+        allSections.append(networkDevicesSection ?? NetworkDevicesCollector.collect(services: []))
+
         // L: GPU & AR
         allSections.append(GPUARCollector.collect())
         // M: Permission Statuses (async)
@@ -80,6 +95,46 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(EnvironmentSecurityCollector.collect())
         sections = allSections
         logger.debug("Collection complete: \(allSections.count) sections")
+    }
+
+    func scanBluetoothDevices() {
+        guard let btManager = bluetoothManager, !isScanningBluetooth else { return }
+        logger.debug("Starting Bluetooth scan")
+        isScanningBluetooth = true
+        btManager.startScanning()
+
+        Task {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            btManager.stopScanning()
+            bluetoothDevicesSection = BluetoothDevicesCollector.collect(devices: btManager.discoveredPeripherals)
+            isScanningBluetooth = false
+            // Update the matching section in-place
+            if let btSection = bluetoothDevicesSection,
+               let index = sections.firstIndex(where: { $0.title == "Bluetooth Devices" }) {
+                sections[index] = btSection
+            }
+            logger.debug("Bluetooth scan complete: \(btManager.discoveredPeripherals.count) devices")
+        }
+    }
+
+    func scanNetworkDevices() {
+        guard let netManager = networkDiscoveryManager, !isScanningNetwork else { return }
+        logger.debug("Starting network discovery")
+        isScanningNetwork = true
+        netManager.startScanning()
+
+        Task {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            netManager.stopScanning()
+            networkDevicesSection = NetworkDevicesCollector.collect(services: netManager.discoveredServices)
+            isScanningNetwork = false
+            // Update the matching section in-place
+            if let netSection = networkDevicesSection,
+               let index = sections.firstIndex(where: { $0.title == "Network Devices" }) {
+                sections[index] = netSection
+            }
+            logger.debug("Network scan complete: \(netManager.discoveredServices.count) services")
+        }
     }
 
     func requestLocationPermission() {

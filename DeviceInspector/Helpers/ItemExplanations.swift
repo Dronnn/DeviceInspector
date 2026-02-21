@@ -84,6 +84,49 @@ struct ItemExplanations {
             return "Whether the system clipboard currently contains this type of content. Checked via UIPasteboard.general."
         }
 
+        // Bluetooth Device dynamic keys (e.g. "BT Device 1 — Name", "BT Device 2 — RSSI")
+        if key.hasPrefix("BT Device") {
+            if key.hasSuffix("— Name") {
+                return "The advertised local name of this Bluetooth Low Energy peripheral. Shows \"Unknown\" if the device does not broadcast a name."
+            }
+            if key.hasSuffix("— UUID") {
+                return "The Core Bluetooth peripheral identifier. This is unique per device-app pair and is not the hardware MAC address."
+            }
+            if key.hasSuffix("— RSSI") {
+                return "Received Signal Strength Indicator in dBm. Closer to 0 means stronger signal: -30 excellent, -50 good, -70 fair, -90 very weak."
+            }
+            if key.hasSuffix("— Connectable") {
+                return "Whether this BLE peripheral advertises itself as connectable. Non-connectable devices are typically broadcasting beacons."
+            }
+            if key.hasSuffix("— TX Power") {
+                return "The transmit power level from the advertisement data. Combined with RSSI, this can be used to estimate the distance to the device."
+            }
+            if key.hasSuffix("— Manufacturer Data") {
+                return "Raw manufacturer-specific data from the BLE advertisement. The first 2 bytes typically contain the Bluetooth SIG company identifier."
+            }
+            if key.hasSuffix("— Service UUIDs") {
+                return "The GATT service UUIDs advertised by this BLE peripheral. These indicate what services the device offers (e.g. heart rate, battery)."
+            }
+            return "Information about a nearby Bluetooth Low Energy peripheral discovered during a scan."
+        }
+
+        // Network Device dynamic keys (e.g. "Net Device 1 — Name", "Net Device 2 — Type")
+        if key.hasPrefix("Net Device") {
+            if key.hasSuffix("— Name") {
+                return "The Bonjour service name advertised by this device on the local network."
+            }
+            if key.hasSuffix("— Type") {
+                return "The type of network service this device offers (e.g. web server, AirPlay, printer, SSH)."
+            }
+            if key.hasSuffix("— Domain") {
+                return "The Bonjour domain where this service was discovered. Typically \"local.\" for the local network."
+            }
+            if key.hasSuffix("— Endpoint") {
+                return "The full service endpoint identifier for this Bonjour service, combining name, type, and domain."
+            }
+            return "Information about a network service discovered via Bonjour (mDNS/DNS-SD) on the local network."
+        }
+
         return nil
     }
 
@@ -599,5 +642,15 @@ struct ItemExplanations {
 
         "Signal Strength (RSSI)":
             "Received Signal Strength Indicator for the current WiFi connection. Measured in dBm: -30 is excellent, -50 is good, -70 is fair, -90 is very weak.",
+
+        // MARK: BluetoothDevicesCollector
+
+        "No Bluetooth Devices":
+            "No BLE peripherals have been discovered yet. Tap the Scan button to start a 5-second Bluetooth Low Energy scan. Requires Bluetooth permission.",
+
+        // MARK: NetworkDevicesCollector
+
+        "No Network Devices":
+            "No network services have been discovered yet. Tap the Scan button to start a 5-second Bonjour discovery on the local network. Requires local network permission.",
     ]
 }

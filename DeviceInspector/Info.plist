@@ -68,5 +68,22 @@
 	<string>Device Inspector checks NFC reading availability for the device report.</string>
 	<key>NSSiriUsageDescription</key>
 	<string>Device Inspector reads Siri authorization status to display in the device report.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Device Inspector discovers devices and services on your local network to display in the device report.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp.</string>
+		<string>_airplay._tcp.</string>
+		<string>_raop._tcp.</string>
+		<string>_homekit._tcp.</string>
+		<string>_printer._tcp.</string>
+		<string>_ipp._tcp.</string>
+		<string>_smb._tcp.</string>
+		<string>_ssh._tcp.</string>
+		<string>_googlecast._tcp.</string>
+		<string>_spotify-connect._tcp.</string>
+		<string>_companion-link._tcp.</string>
+		<string>_sleep-proxy._udp.</string>
+	</array>
 </dict>
 </plist>

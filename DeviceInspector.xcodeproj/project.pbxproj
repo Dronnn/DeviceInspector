@@ -44,6 +44,9 @@
 		000200000000000000000035 /* PermissionRequester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000038 /* PermissionRequester.swift */; };
 		000200000000000000000036 /* ClipboardCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000039 /* ClipboardCollector.swift */; };
 		000200000000000000000037 /* EnvironmentSecurityCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000040 /* EnvironmentSecurityCollector.swift */; };
+		000200000000000000000038 /* BluetoothDevicesCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000041 /* BluetoothDevicesCollector.swift */; };
+		000200000000000000000039 /* NetworkDevicesCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000042 /* NetworkDevicesCollector.swift */; };
+		000200000000000000000040 /* NetworkDiscoveryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000043 /* NetworkDiscoveryManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -87,6 +90,9 @@
 		000100000000000000000038 /* PermissionRequester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequester.swift; sourceTree = "<group>"; };
 		000100000000000000000039 /* ClipboardCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCollector.swift; sourceTree = "<group>"; };
 		000100000000000000000040 /* EnvironmentSecurityCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentSecurityCollector.swift; sourceTree = "<group>"; };
+		000100000000000000000041 /* BluetoothDevicesCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDevicesCollector.swift; sourceTree = "<group>"; };
+		000100000000000000000042 /* NetworkDevicesCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDevicesCollector.swift; sourceTree = "<group>"; };
+		000100000000000000000043 /* NetworkDiscoveryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDiscoveryManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +161,8 @@
 				000100000000000000000034 /* LocaleCollector.swift */,
 				000100000000000000000039 /* ClipboardCollector.swift */,
 				000100000000000000000040 /* EnvironmentSecurityCollector.swift */,
+				000100000000000000000041 /* BluetoothDevicesCollector.swift */,
+				000100000000000000000042 /* NetworkDevicesCollector.swift */,
 			);
 			path = Collectors;
 			sourceTree = "<group>";
@@ -190,6 +198,7 @@
 				000100000000000000000020 /* ByteFormatter.swift */,
 				000100000000000000000036 /* ItemExplanations.swift */,
 				000100000000000000000038 /* PermissionRequester.swift */,
+				000100000000000000000043 /* NetworkDiscoveryManager.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -308,6 +317,9 @@
 				000200000000000000000035 /* PermissionRequester.swift in Sources */,
 				000200000000000000000036 /* ClipboardCollector.swift in Sources */,
 				000200000000000000000037 /* EnvironmentSecurityCollector.swift in Sources */,
+				000200000000000000000038 /* BluetoothDevicesCollector.swift in Sources */,
+				000200000000000000000039 /* NetworkDevicesCollector.swift in Sources */,
+				000200000000000000000040 /* NetworkDiscoveryManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
