@@ -13,44 +13,101 @@ struct ContentView: View {
     @State private var expandSectionID: String?
     @State private var allExpanded = true
     @State private var showSectionMenu = false
+    @State private var isSearching = false
+    @State private var searchText = ""
+    @FocusState private var isSearchFieldFocused: Bool
+
+    private var filteredSections: [DeviceInfoSection] {
+        guard isSearching, !searchText.isEmpty else {
+            return viewModel.sections
+        }
+        let query = searchText.lowercased()
+        return viewModel.sections.compactMap { section in
+            let matchingItems = section.items.filter { item in
+                item.key.lowercased().contains(query) ||
+                item.value.lowercased().contains(query)
+            }
+            guard !matchingItems.isEmpty else { return nil }
+            var filtered = section
+            filtered.items = matchingItems
+            return filtered
+        }
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 ScrollViewReader { proxy in
                     List {
-                        // MARK: - Header Section
-                        Section {
-                            HStack {
-                                Image(systemName: "cpu")
-                                    .font(.title2)
+                        // MARK: - Search Bar
+                        if isSearching {
+                            Section {
+                                HStack(spacing: 8) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "magnifyingglass")
+                                            .foregroundStyle(.secondary)
+                                        TextField("Search items...", text: $searchText)
+                                            .focused($isSearchFieldFocused)
+                                            .autocorrectionDisabled()
+                                            .textInputAutocapitalization(.never)
+                                        if !searchText.isEmpty {
+                                            Button {
+                                                searchText = ""
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                    .padding(8)
+                                    .background(Color(.systemGray5))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                                    Button("Cancel") {
+                                        searchText = ""
+                                        isSearching = false
+                                        isSearchFieldFocused = false
+                                    }
                                     .foregroundStyle(Color.accentColor)
-                                Text("Device Inspector")
-                                    .font(.title2.bold())
-                                Spacer()
-                            }
-
-                            Toggle("Privacy Mode", isOn: $viewModel.privacyMode)
-                                .tint(.orange)
-
-                            PermissionStatusView(
-                                locationStatus: viewModel.locationStatus,
-                                attStatus: viewModel.attStatus,
-                                bluetoothStatus: bluetoothManager.authorizationStatus,
-                                onRequestLocation: {
-                                    locationManager.requestWhenInUseAuthorization()
-                                },
-                                onRequestATT: {
-                                    await viewModel.requestATTPermission()
-                                },
-                                onRequestBluetooth: {
-                                    bluetoothManager.requestAuthorization()
                                 }
-                            )
+                            }
+                        }
+
+                        // MARK: - Header Section
+                        if !isSearching {
+                            Section {
+                                HStack {
+                                    Image(systemName: "cpu")
+                                        .font(.title2)
+                                        .foregroundStyle(Color.accentColor)
+                                    Text("Device Inspector")
+                                        .font(.title2.bold())
+                                    Spacer()
+                                }
+
+                                Toggle("Privacy Mode", isOn: $viewModel.privacyMode)
+                                    .tint(.orange)
+
+                                PermissionStatusView(
+                                    locationStatus: viewModel.locationStatus,
+                                    attStatus: viewModel.attStatus,
+                                    bluetoothStatus: bluetoothManager.authorizationStatus,
+                                    onRequestLocation: {
+                                        locationManager.requestWhenInUseAuthorization()
+                                    },
+                                    onRequestATT: {
+                                        await viewModel.requestATTPermission()
+                                    },
+                                    onRequestBluetooth: {
+                                        bluetoothManager.requestAuthorization()
+                                    }
+                                )
+                            }
                         }
 
                         // MARK: - Device Info Sections
-                        ForEach(viewModel.sections) { section in
+                        ForEach(filteredSections) { section in
                             SectionView(
                                 section: section,
                                 privacyMode: viewModel.privacyMode,
@@ -104,6 +161,20 @@ struct ContentView: View {
                             Spacer()
 
                             Button {
+                                isSearching.toggle()
+                                if isSearching {
+                                    isSearchFieldFocused = true
+                                } else {
+                                    searchText = ""
+                                    isSearchFieldFocused = false
+                                }
+                            } label: {
+                                Label("Search", systemImage: "magnifyingglass")
+                            }
+
+                            Spacer()
+
+                            Button {
                                 if let data = viewModel.exportJSON() {
                                     let url = FileManager.default.temporaryDirectory
                                         .appendingPathComponent("DeviceInspector.json")
@@ -150,7 +221,7 @@ struct ContentView: View {
                     .sheet(isPresented: $showSectionMenu) {
                         NavigationStack {
                             List {
-                                ForEach(viewModel.sections) { section in
+                                ForEach(filteredSections) { section in
                                     Button {
                                         let targetID = section.id
                                         showSectionMenu = false

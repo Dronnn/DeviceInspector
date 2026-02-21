@@ -13,6 +13,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - Pull-to-refresh
 - Expandable sections with explanations
 - Per-item context menu for copying
+- Search and filter items by keyword in real time
 - Permission management UI (Location, App Tracking Transparency)
 
 ## Categories
