@@ -49,6 +49,7 @@
 		000200000000000000000040 /* NetworkDiscoveryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000043 /* NetworkDiscoveryManager.swift */; };
 		000200000000000000000041 /* DiscoveredDevicesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000044 /* DiscoveredDevicesSheet.swift */; };
 		000200000000000000000042 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000045 /* PrivacyInfo.xcprivacy */; };
+		000200000000000000000043 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000100000000000000000046 /* PrivacyPolicyView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,6 +98,7 @@
 		000100000000000000000043 /* NetworkDiscoveryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDiscoveryManager.swift; sourceTree = "<group>"; };
 		000100000000000000000044 /* DiscoveredDevicesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveredDevicesSheet.swift; sourceTree = "<group>"; };
 		000100000000000000000045 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		000100000000000000000046 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,6 +194,7 @@
 				000100000000000000000018 /* ActivityViewControllerRepresentable.swift */,
 				000100000000000000000035 /* ItemDetailSheet.swift */,
 				000100000000000000000044 /* DiscoveredDevicesSheet.swift */,
+				000100000000000000000046 /* PrivacyPolicyView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -328,6 +331,7 @@
 				000200000000000000000039 /* NetworkDevicesCollector.swift in Sources */,
 				000200000000000000000040 /* NetworkDiscoveryManager.swift in Sources */,
 				000200000000000000000041 /* DiscoveredDevicesSheet.swift in Sources */,
+				000200000000000000000043 /* PrivacyPolicyView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

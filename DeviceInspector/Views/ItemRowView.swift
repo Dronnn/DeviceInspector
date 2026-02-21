@@ -42,17 +42,17 @@ struct ItemRowView: View {
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showDetail) {
-            ItemDetailSheet(item: item)
+            ItemDetailSheet(item: item, privacyMode: privacyMode)
         }
         .contextMenu {
             Button {
-                UIPasteboard.general.string = item.value
+                UIPasteboard.general.string = displayValue
             } label: {
                 Label("Copy Value", systemImage: "doc.on.doc")
             }
 
             Button {
-                UIPasteboard.general.string = "\(item.key): \(item.value)"
+                UIPasteboard.general.string = "\(item.key): \(displayValue)"
             } label: {
                 Label("Copy Key & Value", systemImage: "doc.on.clipboard")
             }

@@ -45,9 +45,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Device Inspector needs location access to read WiFi network information (SSID/BSSID).</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Device Inspector can show your advertising identifier (IDFA) if you allow tracking.</string>
+	<string>DeviceInspector checks your App Tracking Transparency preference to display the current permission status. No data is tracked or sent to third parties.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Device Inspector reads Bluetooth authorization status to display in the device report.</string>
+	<string>DeviceInspector uses Bluetooth to scan for nearby devices and display their signal strength, name, and advertisement data. No data is sent externally.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Device Inspector reads Bluetooth status for the device report.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
@@ -70,6 +70,8 @@
 	<string>Device Inspector reads Siri authorization status to display in the device report.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Device Inspector discovers devices and services on your local network to display in the device report.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>DeviceInspector reads motion sensor availability to display device capabilities. No motion data is collected or stored.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp.</string>

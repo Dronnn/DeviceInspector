@@ -11,6 +11,11 @@ final class DeviceInspectorViewModel: ObservableObject {
     @Published var locationStatus: CLAuthorizationStatus = .notDetermined
     @Published var attStatus: ATTrackingManager.AuthorizationStatus = .notDetermined
 
+    @Published var publicIPAddress: String?
+    @Published var isFetchingPublicIP = false
+    @Published var isFetchingClipboard = false
+    @Published var clipboardFetched = false
+
     @Published var isScanningBluetooth = false
     @Published var isScanningNetwork = false
     @Published var bluetoothDevicesSection: DeviceInfoSection?
@@ -63,8 +68,8 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(ExtendedNetworkCollector.collect())
         // DNS Servers
         allSections.append(ExtendedNetworkCollector.collectDNSServers())
-        // Public IP
-        allSections.append(await ExtendedNetworkCollector.collectPublicIP())
+        // Public IP (user-initiated only — not auto-fetched)
+        allSections.append(publicIPSection())
 
         allSections.append(
             IdentifiersCollector.collect(
@@ -95,7 +100,7 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(AccessibilityCollector.collect())
         // O: App & Bundle
         allSections.append(AppBundleCollector.collect())
-        allSections.append(ClipboardCollector.collect())
+        allSections.append(clipboardSection())
         allSections.append(EnvironmentSecurityCollector.collect())
         sections = allSections
         logger.debug("Collection complete: \(allSections.count) sections")
@@ -147,6 +152,100 @@ final class DeviceInspectorViewModel: ObservableObject {
         }
     }
 
+    private func publicIPSection() -> DeviceInfoSection {
+        if let ip = publicIPAddress {
+            return DeviceInfoSection(
+                title: "Public IP",
+                icon: "globe",
+                items: [
+                    DeviceInfoItem(
+                        key: "Public IP",
+                        value: ip,
+                        isSensitive: true
+                    )
+                ],
+                explanation: """
+                Public IP shows the external IP address visible to the internet for this device. \
+                Obtained by querying the ipify.org API. Marked as sensitive because it can reveal \
+                your approximate location and ISP. Requires an active internet connection. \
+                This request is only made when you tap "Determine Public IP".
+                """
+            )
+        } else {
+            return DeviceInfoSection(
+                title: "Public IP",
+                icon: "globe",
+                items: [
+                    DeviceInfoItem(
+                        key: "Public IP",
+                        value: "Not yet determined",
+                        notes: "Tap \"Determine Public IP\" to fetch your public IP address from ipify.org."
+                    )
+                ],
+                explanation: """
+                Public IP shows the external IP address visible to the internet for this device. \
+                Obtained by querying the ipify.org API. Marked as sensitive because it can reveal \
+                your approximate location and ISP. Requires an active internet connection. \
+                This request is only made when you tap "Determine Public IP".
+                """
+            )
+        }
+    }
+
+    func fetchPublicIP() {
+        guard !isFetchingPublicIP else { return }
+        isFetchingPublicIP = true
+        Task {
+            let section = await ExtendedNetworkCollector.collectPublicIP()
+            let ipValues = section.items.compactMap { item -> String? in
+                item.value != "Unavailable" ? "\(item.key): \(item.value)" : nil
+            }
+            publicIPAddress = ipValues.isEmpty ? "Unavailable" : ipValues.joined(separator: "\n")
+            if let index = sections.firstIndex(where: { $0.title == "Public IP" }) {
+                sections[index] = section
+            }
+            isFetchingPublicIP = false
+            logger.debug("Public IP fetched on user request")
+        }
+    }
+
+    private func clipboardSection() -> DeviceInfoSection {
+        if clipboardFetched {
+            return ClipboardCollector.collect()
+        } else {
+            return DeviceInfoSection(
+                title: "Clipboard",
+                icon: "clipboard",
+                items: [
+                    DeviceInfoItem(
+                        key: "Clipboard",
+                        value: "Not yet inspected",
+                        notes: "Tap \"Inspect Clipboard\" to check current clipboard metadata."
+                    )
+                ],
+                explanation: """
+                Clipboard shows metadata about the current contents of the system pasteboard \
+                (UIPasteboard.general). This includes whether text, images, or URLs are present \
+                and the total item count. The actual clipboard content is not read — only its \
+                type indicators are checked using hasStrings, hasImages, and hasURLs. \
+                This check is only performed when you tap "Inspect Clipboard".
+                """
+            )
+        }
+    }
+
+    func fetchClipboard() {
+        guard !isFetchingClipboard else { return }
+        isFetchingClipboard = true
+        let section = ClipboardCollector.collect()
+        clipboardFetched = true
+        if let index = sections.firstIndex(where: { $0.title == "Clipboard" }) {
+            sections[index] = section
+        }
+        isFetchingClipboard = false
+        logger.debug("Clipboard inspected on user request")
+    }
+
     func requestLocationPermission() {
         // Handled by LocationManagerDelegate bound to the view
     }
@@ -160,8 +259,23 @@ final class DeviceInspectorViewModel: ObservableObject {
     func exportJSON() -> Data? {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let exportSections: [DeviceInfoSection]
+        if privacyMode {
+            exportSections = sections.map { section in
+                var masked = section
+                masked.items = section.items.map { item in
+                    guard item.isSensitive else { return item }
+                    var maskedItem = item
+                    maskedItem.value = String(repeating: "\u{2022}", count: 8)
+                    return maskedItem
+                }
+                return masked
+            }
+        } else {
+            exportSections = sections
+        }
         do {
-            let data = try encoder.encode(sections)
+            let data = try encoder.encode(exportSections)
             logger.debug("JSON export: \(data.count) bytes")
             return data
         } catch {

@@ -1,5 +1,7 @@
 # Planning & dev logs (internal)
 docs/
+!docs/index.html
+!docs/privacy-policy.md
 logs/
 task.md
 

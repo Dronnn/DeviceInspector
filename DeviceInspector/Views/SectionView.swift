@@ -152,6 +152,160 @@ struct ScanSectionView: View {
     }
 }
 
+struct PublicIPSectionView: View {
+    let section: DeviceInfoSection
+    let privacyMode: Bool
+    let collapseAllSignal: Int
+    let expandAllSignal: Int
+    let expandSectionID: String?
+    let isFetching: Bool
+    let hasFetched: Bool
+    let onFetch: () -> Void
+    @State private var isExpanded = true
+
+    var body: some View {
+        Section {
+            if isExpanded {
+                if !hasFetched {
+                    Button {
+                        onFetch()
+                    } label: {
+                        HStack {
+                            if isFetching {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Determining Public IP...")
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(Color.accentColor)
+                                Text("Determine Public IP")
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isFetching)
+                } else {
+                    ForEach(section.items) { item in
+                        ItemRowView(item: item, privacyMode: privacyMode)
+                    }
+                }
+
+                ExplainRowView(title: section.title, explanation: section.explanation)
+            }
+        } header: {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: section.icon)
+                        .foregroundStyle(Color.accentColor)
+                    Text(section.title)
+                    Spacer()
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .id(section.id)
+        .onChange(of: collapseAllSignal) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) { isExpanded = false }
+        }
+        .onChange(of: expandAllSignal) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
+        }
+        .onChange(of: expandSectionID) { newID in
+            if newID == section.id {
+                withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
+            }
+        }
+    }
+}
+
+struct ClipboardSectionView: View {
+    let section: DeviceInfoSection
+    let privacyMode: Bool
+    let collapseAllSignal: Int
+    let expandAllSignal: Int
+    let expandSectionID: String?
+    let isFetching: Bool
+    let hasFetched: Bool
+    let onFetch: () -> Void
+    @State private var isExpanded = true
+
+    var body: some View {
+        Section {
+            if isExpanded {
+                if !hasFetched {
+                    Button {
+                        onFetch()
+                    } label: {
+                        HStack {
+                            if isFetching {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Inspecting Clipboard...")
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Image(systemName: "clipboard")
+                                    .foregroundStyle(Color.accentColor)
+                                Text("Inspect Clipboard")
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isFetching)
+                } else {
+                    ForEach(section.items) { item in
+                        ItemRowView(item: item, privacyMode: privacyMode)
+                    }
+                }
+
+                ExplainRowView(title: section.title, explanation: section.explanation)
+            }
+        } header: {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: section.icon)
+                        .foregroundStyle(Color.accentColor)
+                    Text(section.title)
+                    Spacer()
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .id(section.id)
+        .onChange(of: collapseAllSignal) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) { isExpanded = false }
+        }
+        .onChange(of: expandAllSignal) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
+        }
+        .onChange(of: expandSectionID) { newID in
+            if newID == section.id {
+                withAnimation(.easeInOut(duration: 0.2)) { isExpanded = true }
+            }
+        }
+    }
+}
+
 private struct ExplainRowView: View {
     let title: String
     let explanation: String

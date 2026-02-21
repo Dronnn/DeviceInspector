@@ -3,12 +3,16 @@ import UIKit
 
 struct ItemDetailSheet: View {
     let item: DeviceInfoItem
+    var privacyMode: Bool = false
 
     @Environment(\.dismiss) private var dismiss
     @State private var updatedValue: String?
 
     private var displayValue: String {
-        updatedValue ?? item.value
+        if privacyMode && item.isSensitive {
+            return String(repeating: "\u{2022}", count: 8)
+        }
+        return updatedValue ?? item.value
     }
 
     private var availabilityExplanation: String {
@@ -86,7 +90,9 @@ struct ItemDetailSheet: View {
                                         Text(key)
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
-                                        Text(details[key] ?? "")
+                                        Text(privacyMode && item.isSensitive
+                                            ? String(repeating: "\u{2022}", count: 8)
+                                            : (details[key] ?? ""))
                                             .font(.caption.monospaced())
                                             .textSelection(.enabled)
                                     }

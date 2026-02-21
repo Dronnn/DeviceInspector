@@ -65,7 +65,29 @@ struct ContentView: View {
 
                         // MARK: - Device Info Sections
                         ForEach(filteredSections) { section in
-                            if section.title == "Bluetooth Devices" {
+                            if section.title == "Public IP" {
+                                PublicIPSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    isFetching: viewModel.isFetchingPublicIP,
+                                    hasFetched: viewModel.publicIPAddress != nil,
+                                    onFetch: { viewModel.fetchPublicIP() }
+                                )
+                            } else if section.title == "Clipboard" {
+                                ClipboardSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    isFetching: viewModel.isFetchingClipboard,
+                                    hasFetched: viewModel.clipboardFetched,
+                                    onFetch: { viewModel.fetchClipboard() }
+                                )
+                            } else if section.title == "Bluetooth Devices" {
                                 ScanSectionView(
                                     section: section,
                                     privacyMode: viewModel.privacyMode,
@@ -203,24 +225,48 @@ struct ContentView: View {
                     .sheet(isPresented: $showSectionMenu) {
                         NavigationStack {
                             List {
-                                ForEach(filteredSections) { section in
-                                    Button {
-                                        let targetID = section.id
-                                        showSectionMenu = false
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            expandSectionID = targetID
+                                Section("Sections") {
+                                    ForEach(filteredSections) { section in
+                                        Button {
+                                            let targetID = section.id
+                                            showSectionMenu = false
                                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                                withAnimation {
-                                                    proxy.scrollTo(targetID, anchor: .top)
+                                                expandSectionID = targetID
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                    withAnimation {
+                                                        proxy.scrollTo(targetID, anchor: .top)
+                                                    }
                                                 }
                                             }
+                                        } label: {
+                                            Label(section.title, systemImage: section.icon)
                                         }
-                                    } label: {
-                                        Label(section.title, systemImage: section.icon)
                                     }
                                 }
+
+                                Section {
+                                    NavigationLink {
+                                        PrivacyPolicyView()
+                                    } label: {
+                                        Label("Privacy Policy", systemImage: "hand.raised")
+                                    }
+
+                                    Link(destination: URL(string: "mailto:app@andreasmaier.dev")!) {
+                                        Label("Contact", systemImage: "envelope")
+                                    }
+
+                                    Link(destination: URL(string: "https://andreasmaier.dev")!) {
+                                        Label("Website", systemImage: "globe")
+                                    }
+                                } header: {
+                                    Text("About")
+                                } footer: {
+                                    Text("\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1")) \u{00B7} \u{00A9} 2025 Andreas Maier")
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.top, 8)
+                                }
                             }
-                            .navigationTitle("Sections")
+                            .navigationTitle("Menu")
                             .navigationBarTitleDisplayMode(.inline)
                             .toolbar {
                                 ToolbarItem(placement: .topBarTrailing) {
