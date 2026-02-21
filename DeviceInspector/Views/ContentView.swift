@@ -15,10 +15,31 @@ struct ContentView: View {
     @State private var showSectionMenu = false
     @State private var isSearching = false
     @State private var searchText = ""
-    @FocusState private var isSearchFieldFocused: Bool
+    @ViewBuilder
+    private var headerSection: some View {
+        Section {
+            Toggle("Privacy Mode", isOn: $viewModel.privacyMode)
+                .tint(.orange)
+
+            PermissionStatusView(
+                locationStatus: viewModel.locationStatus,
+                attStatus: viewModel.attStatus,
+                bluetoothStatus: bluetoothManager.authorizationStatus,
+                onRequestLocation: {
+                    locationManager.requestWhenInUseAuthorization()
+                },
+                onRequestATT: {
+                    await viewModel.requestATTPermission()
+                },
+                onRequestBluetooth: {
+                    bluetoothManager.requestAuthorization()
+                }
+            )
+        }
+    }
 
     private var filteredSections: [DeviceInfoSection] {
-        guard isSearching, !searchText.isEmpty else {
+        guard !searchText.isEmpty else {
             return viewModel.sections
         }
         let query = searchText.lowercased()
@@ -39,72 +60,7 @@ struct ContentView: View {
             ZStack {
                 ScrollViewReader { proxy in
                     List {
-                        // MARK: - Search Bar
-                        if isSearching {
-                            Section {
-                                HStack(spacing: 8) {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "magnifyingglass")
-                                            .foregroundStyle(.secondary)
-                                        TextField("Search items...", text: $searchText)
-                                            .focused($isSearchFieldFocused)
-                                            .autocorrectionDisabled()
-                                            .textInputAutocapitalization(.never)
-                                        if !searchText.isEmpty {
-                                            Button {
-                                                searchText = ""
-                                            } label: {
-                                                Image(systemName: "xmark.circle.fill")
-                                                    .foregroundStyle(.secondary)
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                    }
-                                    .padding(8)
-                                    .background(Color(.systemGray5))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                                    Button("Cancel") {
-                                        searchText = ""
-                                        isSearching = false
-                                        isSearchFieldFocused = false
-                                    }
-                                    .foregroundStyle(Color.accentColor)
-                                }
-                            }
-                        }
-
-                        // MARK: - Header Section
-                        if !isSearching {
-                            Section {
-                                HStack {
-                                    Image(systemName: "cpu")
-                                        .font(.title2)
-                                        .foregroundStyle(Color.accentColor)
-                                    Text("Device Inspector")
-                                        .font(.title2.bold())
-                                    Spacer()
-                                }
-
-                                Toggle("Privacy Mode", isOn: $viewModel.privacyMode)
-                                    .tint(.orange)
-
-                                PermissionStatusView(
-                                    locationStatus: viewModel.locationStatus,
-                                    attStatus: viewModel.attStatus,
-                                    bluetoothStatus: bluetoothManager.authorizationStatus,
-                                    onRequestLocation: {
-                                        locationManager.requestWhenInUseAuthorization()
-                                    },
-                                    onRequestATT: {
-                                        await viewModel.requestATTPermission()
-                                    },
-                                    onRequestBluetooth: {
-                                        bluetoothManager.requestAuthorization()
-                                    }
-                                )
-                            }
-                        }
+                        headerSection
 
                         // MARK: - Device Info Sections
                         ForEach(filteredSections) { section in
@@ -161,13 +117,7 @@ struct ContentView: View {
                             Spacer()
 
                             Button {
-                                isSearching.toggle()
-                                if isSearching {
-                                    isSearchFieldFocused = true
-                                } else {
-                                    searchText = ""
-                                    isSearchFieldFocused = false
-                                }
+                                isSearching = true
                             } label: {
                                 Label("Search", systemImage: "magnifyingglass")
                             }
@@ -186,6 +136,7 @@ struct ContentView: View {
                             }
                         }
                     }
+                    .searchable(text: $searchText, isPresented: $isSearching)
                     .refreshable {
                         await viewModel.refresh()
                     }

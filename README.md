@@ -13,7 +13,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - Pull-to-refresh
 - Expandable sections with explanations
 - Per-item context menu for copying
-- Search and filter items by keyword in real time
+- Native `.searchable` search bar with real-time keyword filtering
 - Permission management UI (Location, App Tracking Transparency)
 
 ## Categories
@@ -216,7 +216,7 @@ iOS enforces strict privacy boundaries. The following data **cannot** be accesse
 
 - **Pattern**: MVVM
 - **UI**: SwiftUI
-- **Minimum**: iOS 16.0
+- **Minimum**: iOS 17.0
 - **Language**: Swift 5.9+
 - **Async**: async/await (no GCD)
 
@@ -289,7 +289,7 @@ DeviceInspector/
 ## Notes
 
 - Simulator will show limited data (no battery, no carrier, no WiFi SSID)
-- Some APIs (`CTCarrier`) are deprecated in iOS 16+ but still functional
+- Some APIs (`CTCarrier`) are deprecated but still functional
 - Model identifier mapping may not include the very latest devices -- update `DeviceModelMapping.swift` as needed
 
 ## License
