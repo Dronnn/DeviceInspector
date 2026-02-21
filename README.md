@@ -1,15 +1,20 @@
 # Device Inspector
 
-A privacy-focused iOS app that collects and displays all publicly available device information. No network requests, no analytics, no tracking. Data is shown locally and can be exported to JSON or copied to clipboard.
+An open-source, privacy-focused iOS app that shows users how much data any app can collect about their device — using only public APIs. The goal is transparency: helping people understand their digital fingerprint and make informed decisions about privacy.
+
+No analytics, no tracking SDKs, no data leaves your device. Everything is collected and displayed locally. Data can be exported to JSON or copied to clipboard.
 
 **Author:** Andreas Maier
+**Source Code:** [github.com/Dronnn/DeviceInspector](https://github.com/Dronnn/DeviceInspector)
 
 ## Features
 
 - Collects device information across 23 categories
 - **Bluetooth device scanning** — discover nearby BLE peripherals with RSSI, advertisement data
 - **Local network discovery** — find devices via Bonjour (AirPlay, HomeKit, printers, SSH, etc.)
-- Privacy mode (sensitive data hidden by default)
+- **"About This App" screen** — accessible via the info button (circle-i) in the toolbar; explains the app's purpose, data transparency philosophy, and links to the source code
+- **About section in burger menu** — includes Privacy Policy link, Contact, Website, and version info
+- Privacy mode (sensitive data masked everywhere: UI, JSON export, copy to clipboard, and detail sheets)
 - Export to JSON via share sheet
 - Copy all data to clipboard
 - Pull-to-refresh
@@ -127,7 +132,7 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - DNS support, IPv4/IPv6 support
 - Available interfaces detail
 - DNS servers (/etc/resolv.conf)
-- Public IP (IPv4/IPv6 via ipify.org)
+- Public IP (IPv4/IPv6 via ipify.org) — **user-initiated only**, not fetched automatically
 
 ### 19. Locale & Languages
 - Currency code/symbol, decimal/grouping separators
@@ -141,8 +146,8 @@ A privacy-focused iOS app that collects and displays all publicly available devi
 - Temperature unit (Celsius/Fahrenheit)
 - Active keyboard input modes
 
-### 21. Clipboard
-- Clipboard content type detection (text, images, URLs)
+### 21. Clipboard (User-Initiated)
+- Clipboard content type detection (text, images, URLs) — **user-initiated only**, not read automatically
 - Item count (no actual content is read)
 
 ### 22. Environment Security
@@ -294,9 +299,11 @@ DeviceInspector/
 │   ├── ItemRowView.swift              # Single info item
 │   ├── ItemDetailSheet.swift          # Item detail half-sheet
 │   ├── DiscoveredDevicesSheet.swift   # BT/Network scan results sheet
+│   ├── AboutView.swift                # About This App screen
 │   ├── AvailabilityBadge.swift        # Status badge
 │   ├── ExplanationSheet.swift         # Section explanation
 │   ├── PermissionStatusView.swift     # Permission UI
+│   ├── PrivacyPolicyView.swift        # In-app Privacy Policy
 │   └── ActivityViewControllerRepresentable.swift  # Share sheet
 └── Helpers/
     ├── LocationManagerDelegate.swift  # CLLocationManager wrapper
@@ -310,12 +317,14 @@ DeviceInspector/
 ## Privacy
 
 - All data is collected and displayed locally only
-- Minimal network requests: Public IP check (ipify.org), Bonjour discovery (local network only)
+- **Sensitive data is not collected automatically** — Public IP (via ipify.org) and Clipboard contents require the user to explicitly tap a button to fetch
+- Bonjour discovery is local network only (no internet requests)
 - No analytics or tracking SDKs
-- Sensitive data (device name, SSID, identifiers) hidden by default in Privacy Mode
+- **Privacy Mode** masks sensitive data (device name, SSID, identifiers) everywhere: in the UI, JSON export, copy to clipboard, and detail sheets
 - User must explicitly tap Refresh to collect data
 - Console logging uses `os.log` with no personal data in debug logs
-- [Privacy Policy](docs/privacy-policy.md)
+- **Privacy Policy** is accessible in-app (burger menu → About → Privacy Policy) and hosted online at [dronnn.github.io/DeviceInspector](https://dronnn.github.io/DeviceInspector/)
+- [Privacy Policy (source)](docs/privacy-policy.md)
 
 ## Building
 

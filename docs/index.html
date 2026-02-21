@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeviceInspector — Privacy Policy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: #1d1d1f;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 24px 64px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .meta {
+            font-size: 0.95rem;
+            color: #6e6e73;
+            margin-bottom: 32px;
+        }
+
+        .meta strong {
+            color: #1d1d1f;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #e5e5e7;
+            margin: 32px 0;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .commitment {
+            background-color: #f5f5f7;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .highlight {
+            font-weight: 600;
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            padding-left: 28px;
+            position: relative;
+        }
+
+        .checklist li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #34c759;
+            font-weight: 700;
+        }
+
+        .summary-box {
+            background-color: #f5f5f7;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-top: 8px;
+        }
+
+        footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e7;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #86868b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Privacy Policy &mdash; Device Inspector</h1>
+        <p class="meta"><strong>Last Updated:</strong> February 21, 2026 &nbsp;&bull;&nbsp; <strong>Contact:</strong> Andreas Maier</p>
+
+        <hr>
+
+        <h2>Overview</h2>
+        <p>Device Inspector is a privacy-first iOS application designed to display detailed information about your device. This Privacy Policy explains how the app handles your data and what information it accesses.</p>
+        <div class="commitment">Our commitment: Device Inspector does not collect personal data, does not require user accounts, and does not track or profile users.</div>
+
+        <hr>
+
+        <h2>Data Collection and Storage</h2>
+
+        <h3>On-Device Processing Only</h3>
+        <p>All device information displayed by Device Inspector is processed locally on your device. This includes:</p>
+        <ul>
+            <li>Device model, iOS version, and hardware specifications</li>
+            <li>Storage and memory information</li>
+            <li>Active network interfaces and configurations</li>
+            <li>Running processes and system status</li>
+            <li>Battery and thermal status</li>
+        </ul>
+        <p class="highlight">This data is never stored, transmitted, or logged by the app.</p>
+
+        <hr>
+
+        <h2>Network Requests</h2>
+
+        <h3>Public IP Address Lookup</h3>
+        <p>The app makes a single, anonymous request to <strong>ipify.org</strong> to retrieve your public IP address. The purposes and terms are:</p>
+        <ul>
+            <li><strong>What is sent:</strong> Only a standard HTTP GET request to identify your public IP</li>
+            <li><strong>What is displayed:</strong> Your public IP address is shown on the app screen only</li>
+            <li><strong>What is NOT done:</strong> The IP address is not stored, cached, or transmitted to any server controlled by the developer</li>
+            <li><strong>Privacy note:</strong> This request is subject to ipify.org's privacy policy; the developer has no control over or visibility into this external service</li>
+        </ul>
+        <p>For details on ipify.org's data handling, visit: <a href="https://www.ipify.org/" rel="noopener noreferrer">https://www.ipify.org/</a></p>
+
+        <h3>Local Network Discovery</h3>
+        <p>Device Inspector scans your local network using Bonjour (mDNS) to discover available services and devices. All discovery activities remain on your local network and are not transmitted outside your device.</p>
+
+        <h3>Bluetooth Scanning</h3>
+        <p>The app scans for nearby Bluetooth Low Energy (BLE) devices to display available Bluetooth peripherals. This scan data remains on your device and is not transmitted elsewhere.</p>
+
+        <hr>
+
+        <h2>System APIs and Required Reason APIs</h2>
+        <p>Device Inspector uses the following system APIs for legitimate on-device functionality:</p>
+        <ul>
+            <li><strong>System Boot Time API:</strong> Displays device uptime</li>
+            <li><strong>Disk Space API:</strong> Shows available and used storage</li>
+            <li><strong>Active Keyboard API:</strong> Displays information about active input methods</li>
+        </ul>
+        <p>The app includes a Privacy Manifest (<code>PrivacyInfo.xcprivacy</code>) that declares all required APIs in accordance with Apple's privacy requirements. These APIs are used only for displaying system information within the app; no data is transmitted to external servers.</p>
+
+        <hr>
+
+        <h2>What the App Does NOT Do</h2>
+        <ul class="checklist">
+            <li>Does not collect personal data (names, emails, phone numbers, etc.)</li>
+            <li>Does not require user accounts or registration</li>
+            <li>Does not use analytics or tracking SDKs</li>
+            <li>Does not display advertisements</li>
+            <li>Does not use cookies</li>
+            <li>Does not transmit device information to any server controlled by the developer</li>
+            <li>Does not log system information</li>
+            <li>Does not profile or build user behavior models</li>
+        </ul>
+
+        <hr>
+
+        <h2>Data Export</h2>
+        <p>Device Inspector allows you to export device information in JSON format or copy it to your clipboard. These export operations are:</p>
+        <ul>
+            <li>Initiated only when you manually select the export option</li>
+            <li>Processed entirely on your device</li>
+            <li>Not automatically transmitted or shared</li>
+        </ul>
+        <p>You control what happens with exported data after you initiate the export.</p>
+
+        <hr>
+
+        <h2>Third-Party Services</h2>
+        <p>The only third-party service used by Device Inspector is:</p>
+        <ul>
+            <li><strong>ipify.org</strong> &ndash; for public IP address lookup (as described above)</li>
+        </ul>
+        <p>No other third-party services, analytics providers, or advertising networks are integrated into this app.</p>
+
+        <hr>
+
+        <h2>Open Source</h2>
+        <p>Device Inspector is fully open source. The entire source code is publicly available on GitHub, so you can review exactly how the app works and verify that it does what this policy describes &mdash; nothing more, nothing less.</p>
+        <p><strong>Source Code:</strong> <a href="https://github.com/Dronnn/DeviceInspector" rel="noopener noreferrer">github.com/Dronnn/DeviceInspector</a></p>
+
+        <hr>
+
+        <h2>Children's Privacy</h2>
+        <p>Device Inspector is not directed toward children under 13. The app does not knowingly collect any information from children. If you believe a child under 13 has used this app, please contact the developer.</p>
+
+        <hr>
+
+        <h2>Changes to This Privacy Policy</h2>
+        <p>This Privacy Policy may be updated periodically to reflect changes in the app's functionality or evolving privacy practices. The "Last Updated" date at the top of this page will indicate when changes were made. We encourage you to review this policy regularly.</p>
+
+        <hr>
+
+        <h2>Contact</h2>
+        <p>If you have questions or concerns about this Privacy Policy or how Device Inspector handles your data, please contact:</p>
+        <p><strong>Andreas Maier</strong><br>
+        GitHub Repository: <a href="https://github.com/Dronnn/DeviceInspector" rel="noopener noreferrer">Device Inspector on GitHub</a></p>
+
+        <hr>
+
+        <h2>Summary</h2>
+        <div class="summary-box">
+            <p>Device Inspector is built with privacy as the foundation. Your device information stays on your device. The app collects no personal data, requires no accounts, and includes no tracking mechanisms. The only external request (ipify.org for public IP) is clearly documented and does not involve data storage or transmission by the developer.</p>
+        </div>
+
+        <footer>
+            &copy; 2025 Andreas Maier
+        </footer>
+    </div>
+</body>
+</html>

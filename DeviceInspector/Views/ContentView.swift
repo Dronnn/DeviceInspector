@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var showSectionMenu = false
     @State private var isSearching = false
     @State private var searchText = ""
+    @State private var showAbout = false
     @ViewBuilder
     private var headerSection: some View {
         Section {
@@ -127,6 +128,14 @@ struct ContentView: View {
                     .listStyle(.insetGrouped)
                     .navigationTitle("Device Inspector")
                     .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                showAbout = true
+                            } label: {
+                                Image(systemName: "info.circle")
+                            }
+                        }
+
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             Button {
                                 if allExpanded {
@@ -277,6 +286,10 @@ struct ContentView: View {
                             }
                         }
                         .presentationDetents([.medium, .large])
+                    }
+                    .sheet(isPresented: $showAbout) {
+                        AboutView()
+                            .presentationDetents([.large])
                     }
                 }
 

@@ -133,6 +133,20 @@ struct PrivacyPolicyView: View {
                 )
 
                 sectionBlock(
+                    title: "Open Source",
+                    content: """
+                    Device Inspector is fully open source. The entire source code is publicly available \
+                    on GitHub, so you can review exactly how the app works and verify that it does \
+                    what this policy describes — nothing more, nothing less.
+                    """
+                )
+
+                Link("View Source Code on GitHub",
+                     destination: URL(string: "https://github.com/Dronnn/DeviceInspector")!)
+                    .font(.callout)
+                    .padding(.leading, 4)
+
+                sectionBlock(
                     title: "Changes to This Privacy Policy",
                     content: """
                     This Privacy Policy may be updated periodically to reflect changes in the app's \
