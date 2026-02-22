@@ -38,23 +38,20 @@ struct WirelessCollector {
         ))
 
         // UWB (Ultra Wideband)
-        if #available(iOS 16.0, *) {
-            let supportsUWB = NISession.deviceCapabilities.supportsPreciseDistanceMeasurement
-            items.append(DeviceInfoItem(
-                key: "Ultra Wideband (UWB)",
-                value: supportsUWB ? "Supported" : "Not Supported",
-                notes: supportsUWB
-                    ? "Device has U1 chip for precise spatial awareness and distance measurement."
-                    : "UWB not available. Requires iPhone 11 or later with U1/U2 chip."
-            ))
-        } else {
-            items.append(DeviceInfoItem(
-                key: "Ultra Wideband (UWB)",
-                value: "Check requires iOS 16+",
-                availability: .notAvailable,
-                notes: "NISession.deviceCapabilities requires iOS 16.0 or later."
-            ))
-        }
+        let supportsUWB = NISession.deviceCapabilities.supportsPreciseDistanceMeasurement
+        items.append(DeviceInfoItem(
+            key: "Ultra Wideband (UWB)",
+            value: supportsUWB ? "Supported" : "Not Supported",
+            notes: supportsUWB
+                ? "Device has U1 chip for precise spatial awareness and distance measurement."
+                : "UWB not available. Requires iPhone 11 or later with U1/U2 chip."
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "Bluetooth Power State",
+            value: "Requires Active Scan",
+            notes: "Bluetooth on/off state is only available during active BLE scanning via CBCentralManager."
+        ))
 
         logger.debug("Wireless collection complete: \(items.count) items")
 

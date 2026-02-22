@@ -1,5 +1,7 @@
 import LocalAuthentication
 import UIKit
+import CryptoKit
+import DeviceCheck
 import os.log
 
 struct BiometricsCollector {
@@ -42,6 +44,16 @@ struct BiometricsCollector {
             key: "Screen Captured",
             value: isCaptured ? "Yes" : "No",
             notes: "Whether the screen is currently being recorded or mirrored via AirPlay."
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "Secure Enclave Available",
+            value: SecureEnclave.isAvailable ? "Yes" : "No"
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "App Attest Supported",
+            value: DCAppAttestService.shared.isSupported ? "Yes" : "No"
         ))
 
         logger.debug("Biometrics collection complete: \(items.count) items")

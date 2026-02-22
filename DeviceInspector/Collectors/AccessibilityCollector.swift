@@ -143,6 +143,9 @@ struct AccessibilityCollector {
             notes: "Which ear(s) have a paired MFi hearing device."
         ))
 
+        let contentSize = UIApplication.shared.preferredContentSizeCategory
+        items.append(DeviceInfoItem(key: "Preferred Content Size", value: contentSize.rawValue))
+
         logger.debug("Accessibility collection complete: \(items.count) items")
 
         return DeviceInfoSection(

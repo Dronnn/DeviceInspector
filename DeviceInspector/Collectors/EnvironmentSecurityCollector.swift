@@ -60,6 +60,29 @@ struct EnvironmentSecurityCollector {
                 : "Found: \(indicators.joined(separator: ", "))"
         ))
 
+        // Data Protection Class
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        if let url = documentsURL {
+            do {
+                let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+                if let protection = attributes[.protectionKey] as? FileProtectionType {
+                    let protectionStr: String
+                    switch protection {
+                    case .complete: protectionStr = "Complete"
+                    case .completeUnlessOpen: protectionStr = "Complete Unless Open"
+                    case .completeUntilFirstUserAuthentication: protectionStr = "Until First Unlock"
+                    case .none: protectionStr = "None"
+                    default: protectionStr = protection.rawValue
+                    }
+                    items.append(DeviceInfoItem(key: "Data Protection", value: protectionStr))
+                } else {
+                    items.append(DeviceInfoItem(key: "Data Protection", value: "Not Set"))
+                }
+            } catch {
+                items.append(DeviceInfoItem(key: "Data Protection", value: "Unable to Determine"))
+            }
+        }
+
         logger.debug("Environment security collection complete: \(items.count) items")
 
         return DeviceInfoSection(

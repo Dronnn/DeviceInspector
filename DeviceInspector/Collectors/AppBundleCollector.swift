@@ -79,6 +79,10 @@ struct AppBundleCollector {
             value: NSTemporaryDirectory()
         ))
 
+        // Minimum OS Version
+        let minOS = Bundle.main.infoDictionary?["MinimumOSVersion"] as? String ?? "Unknown"
+        items.append(DeviceInfoItem(key: "Minimum OS Version", value: minOS))
+
         logger.debug("App bundle collection complete: \(items.count) items")
 
         return DeviceInfoSection(

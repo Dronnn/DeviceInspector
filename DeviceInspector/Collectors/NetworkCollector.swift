@@ -113,6 +113,14 @@ struct NetworkCollector {
                         details["Flags"] = flagNames.joined(separator: ", ")
                     }
 
+                    // MTU (Maximum Transmission Unit) via ifa_data -> if_data
+                    if let ifaData = interface.ifa_data {
+                        let ifData = ifaData.assumingMemoryBound(to: if_data.self).pointee
+                        if ifData.ifi_mtu > 0 {
+                            details["MTU"] = "\(ifData.ifi_mtu)"
+                        }
+                    }
+
                     interfaceAddresses.append((name: name, family: familyName, address: address, details: details))
                 }
             }
@@ -245,7 +253,6 @@ struct NetworkCollector {
 
     /// Asynchronously fetches the current WiFi network's security type and RSSI via NEHotspotNetwork.
     /// Returns an array of DeviceInfoItems to append to the WiFi section.
-    @available(iOS 15.0, *)
     static func collectWiFiExtras() async -> [DeviceInfoItem] {
         logger.debug("Collecting WiFi extras via NEHotspotNetwork")
         var items: [DeviceInfoItem] = []
@@ -280,7 +287,6 @@ struct NetworkCollector {
         return items
     }
 
-    @available(iOS 15.0, *)
     private static func humanReadableSecurityType(_ type: NEHotspotNetworkSecurityType) -> String {
         switch type {
         case .open:
@@ -463,6 +469,7 @@ struct NetworkCollector {
         return sections
     }
 
+    @available(iOS, deprecated: 16.0, message: "CTRadioAccessTechnology constants are deprecated but still functional")
     private static func humanReadableRadioTech(_ tech: String) -> String {
         switch tech {
         case CTRadioAccessTechnologyGPRS: return "GPRS (2G)"
@@ -477,10 +484,8 @@ struct NetworkCollector {
         case CTRadioAccessTechnologyeHRPD: return "eHRPD (3G)"
         case CTRadioAccessTechnologyLTE: return "LTE (4G)"
         default:
-            if #available(iOS 14.1, *) {
-                if tech == CTRadioAccessTechnologyNRNSA { return "5G NR NSA" }
-                if tech == CTRadioAccessTechnologyNR { return "5G NR" }
-            }
+            if tech == CTRadioAccessTechnologyNRNSA { return "5G NR NSA" }
+            if tech == CTRadioAccessTechnologyNR { return "5G NR" }
             return tech
         }
     }

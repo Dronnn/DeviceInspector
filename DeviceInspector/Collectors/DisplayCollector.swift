@@ -133,6 +133,39 @@ struct DisplayCollector {
             notes: "Whether Display Zoom is enabled in Settings > Display. Zoomed mode makes UI elements larger."
         ))
 
+        // Native Resolution
+        if let mode = UIScreen.main.currentMode {
+            items.append(DeviceInfoItem(key: "Native Resolution", value: "\(Int(mode.size.width)) × \(Int(mode.size.height)) px"))
+        } else {
+            items.append(DeviceInfoItem(key: "Native Resolution", value: "Unknown"))
+        }
+
+        // Available Display Modes
+        let modeCount = UIScreen.main.availableModes.count
+        items.append(DeviceInfoItem(key: "Available Display Modes", value: "\(modeCount)"))
+
+        // Safe Area Insets
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            let insets = window.safeAreaInsets
+            items.append(DeviceInfoItem(key: "Safe Area Top", value: String(format: "%.1f pt", insets.top)))
+            items.append(DeviceInfoItem(key: "Safe Area Bottom", value: String(format: "%.1f pt", insets.bottom)))
+            items.append(DeviceInfoItem(key: "Safe Area Left", value: String(format: "%.1f pt", insets.left)))
+            items.append(DeviceInfoItem(key: "Safe Area Right", value: String(format: "%.1f pt", insets.right)))
+
+            // Device shape description based on insets
+            let shape: String
+            if insets.top > 47 {
+                shape = "Dynamic Island"
+            } else if insets.top > 20 {
+                shape = "Notch"
+            } else {
+                shape = "Classic (no notch)"
+            }
+            items.append(DeviceInfoItem(key: "Device Shape", value: shape,
+                notes: "Inferred from safe area insets. Reveals exact device generation."))
+        }
+
         logger.debug("Display collection complete: \(items.count) items")
 
         return DeviceInfoSection(

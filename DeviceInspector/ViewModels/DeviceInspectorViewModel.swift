@@ -25,6 +25,14 @@ final class DeviceInspectorViewModel: ObservableObject {
     @Published var bluetoothDeviceCount = 0
     @Published var networkServiceCount = 0
 
+    @Published var fontDetailItems: [DeviceInfoItem] = []
+    @Published var fontCount: Int = 0
+    @Published var speechVoiceDetailItems: [DeviceInfoItem] = []
+    @Published var speechVoiceCount: Int = 0
+
+    var currentLocation: CLLocation?
+    var accuracyAuthorization: CLAccuracyAuthorization?
+
     private let logger = Logger(subsystem: "com.deviceinspector", category: "ViewModel")
 
     var bluetoothManager: BluetoothManagerDelegate?
@@ -38,6 +46,9 @@ final class DeviceInspectorViewModel: ObservableObject {
 
         var allSections: [DeviceInfoSection] = []
 
+        // M: Permission Statuses (async) — first for awareness
+        allSections.append(await PermissionsCollector.collect())
+
         allSections.append(ProcessInfoCollector.collect())
         allSections.append(UIDeviceCollector.collect())
         allSections.append(HardwareCollector.collect())
@@ -46,6 +57,14 @@ final class DeviceInspectorViewModel: ObservableObject {
         allSections.append(LocaleCollector.collectLanguages())
         allSections.append(LocaleCollector.collectSystemSettings())
         allSections.append(StorageCollector.collect())
+        // Location
+        let locationServicesEnabled = await Task.detached { CLLocationManager.locationServicesEnabled() }.value
+        allSections.append(LocationCollector.collect(
+            authorizationStatus: locationStatus,
+            accuracyAuthorization: accuracyAuthorization,
+            location: currentLocation,
+            locationServicesEnabled: locationServicesEnabled
+        ))
         // Network: IP Addresses
         allSections.append(NetworkCollector.collectIPAddresses())
         // Network: WiFi
@@ -58,11 +77,9 @@ final class DeviceInspectorViewModel: ObservableObject {
         // Network: Cellular (one section per SIM)
         allSections.append(contentsOf: NetworkCollector.collectCellularInfo())
         // WiFi Extras (Security Type + RSSI, inserted into existing WiFi section)
-        if #available(iOS 15.0, *) {
-            let wifiExtras = await NetworkCollector.collectWiFiExtras()
-            if !wifiExtras.isEmpty, let wifiIndex = allSections.firstIndex(where: { $0.title == "WiFi" }) {
-                allSections[wifiIndex].items.append(contentsOf: wifiExtras)
-            }
+        let wifiExtras = await NetworkCollector.collectWiFiExtras()
+        if !wifiExtras.isEmpty, let wifiIndex = allSections.firstIndex(where: { $0.title == "WiFi" }) {
+            allSections[wifiIndex].items.append(contentsOf: wifiExtras)
         }
         // Extended Network (proxy, VPN, NWPath) — right after WiFi/Cellular
         allSections.append(ExtendedNetworkCollector.collect())
@@ -77,12 +94,21 @@ final class DeviceInspectorViewModel: ObservableObject {
             )
         )
 
+        // Tracking (ATT)
+        allSections.append(TrackingCollector.collect(attStatus: attStatus))
+
         // H: Biometrics & Security
         allSections.append(BiometricsCollector.collect())
         // I: Sensors & Motion
         allSections.append(SensorsCollector.collect())
+        // Speech Voices (summary in main list, detail in sheet)
+        let speechVoicesDetail = SensorsCollector.collectSpeechVoices()
+        speechVoiceDetailItems = speechVoicesDetail.items
+        speechVoiceCount = speechVoicesDetail.items.count
+        allSections.append(SensorsCollector.collectSpeechVoicesSummary())
         // J: Camera & Audio
         allSections.append(CameraAudioCollector.collect())
+        allSections.append(CameraAudioCollector.collectMediaCodecs())
         // K: Wireless Technologies
         allSections.append(WirelessCollector.collect())
 
@@ -94,10 +120,15 @@ final class DeviceInspectorViewModel: ObservableObject {
 
         // L: GPU & AR
         allSections.append(GPUARCollector.collect())
-        // M: Permission Statuses (async)
-        allSections.append(await PermissionsCollector.collect())
         // N: Accessibility
         allSections.append(AccessibilityCollector.collect())
+        // System Fonts (summary in main list, detail in sheet)
+        let fontsDetail = FontCollector.collect()
+        fontDetailItems = fontsDetail.items
+        fontCount = fontsDetail.items.count
+        allSections.append(FontCollector.collectSummary())
+        // WebView Fingerprint
+        allSections.append(await WebViewFingerprintCollector.collect())
         // O: App & Bundle
         allSections.append(AppBundleCollector.collect())
         allSections.append(clipboardSection())

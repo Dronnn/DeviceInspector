@@ -114,6 +114,25 @@ struct HardwareCollector {
             ))
         }
 
+        // Cache sizes
+        if let l1d = sysctlInt64(name: "hw.l1dcachesize"), l1d > 0 {
+            items.append(DeviceInfoItem(key: "L1 Data Cache", value: ByteCountFormatter.string(fromByteCount: l1d, countStyle: .memory)))
+        } else {
+            items.append(DeviceInfoItem(key: "L1 Data Cache", value: "Not Available"))
+        }
+
+        if let l1i = sysctlInt64(name: "hw.l1icachesize"), l1i > 0 {
+            items.append(DeviceInfoItem(key: "L1 Instruction Cache", value: ByteCountFormatter.string(fromByteCount: l1i, countStyle: .memory)))
+        } else {
+            items.append(DeviceInfoItem(key: "L1 Instruction Cache", value: "Not Available"))
+        }
+
+        if let l2 = sysctlInt64(name: "hw.l2cachesize"), l2 > 0 {
+            items.append(DeviceInfoItem(key: "L2 Cache", value: ByteCountFormatter.string(fromByteCount: l2, countStyle: .memory)))
+        } else {
+            items.append(DeviceInfoItem(key: "L2 Cache", value: "Not Available"))
+        }
+
         logger.debug("Hardware collection complete: \(items.count) items")
 
         return DeviceInfoSection(

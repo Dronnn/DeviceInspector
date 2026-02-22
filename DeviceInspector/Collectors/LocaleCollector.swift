@@ -107,6 +107,21 @@ struct LocaleCollector {
             value: Calendar.current.identifier.debugDescription
         ))
 
+        // Locale script and variant (fingerprinting vectors)
+        if let script = locale.language.script {
+            items.append(DeviceInfoItem(key: "Locale Script", value: script.identifier,
+                notes: "Writing script variant (e.g., Hans vs Hant for Chinese). Adds fingerprint entropy."))
+        }
+
+        if let variant = locale.variant {
+            items.append(DeviceInfoItem(key: "Locale Variant", value: variant.identifier,
+                notes: "Regional variant of the locale. Narrows user identity when combined with region."))
+        }
+
+        let collation = Locale.current.collation
+        items.append(DeviceInfoItem(key: "Collation", value: collation.identifier.isEmpty ? "Default" : collation.identifier,
+            notes: "String sorting order. Most users have 'Default' but custom values add fingerprint entropy."))
+
         logger.debug("Locale collection complete: \(items.count) items")
 
         return DeviceInfoSection(
@@ -218,6 +233,19 @@ struct LocaleCollector {
             value: keyboards.isEmpty ? "None detected" : keyboards.joined(separator: ", "),
             notes: "Languages/identifiers of the currently active keyboard input modes."
         ))
+
+        // Individual keyboard languages
+        items.append(DeviceInfoItem(
+            key: "Keyboard Count",
+            value: "\(inputModes.count)",
+            notes: "Number of installed keyboard languages. A user with English + Russian + Arabic keyboards is highly distinguishable."))
+
+        for (index, mode) in inputModes.enumerated() {
+            items.append(DeviceInfoItem(
+                key: "Keyboard \(index + 1)",
+                value: mode.primaryLanguage ?? "Unknown",
+                notes: "Language identifier for this installed keyboard input mode."))
+        }
 
         logger.debug("System settings collection complete: \(items.count) items")
 

@@ -9,6 +9,7 @@ import UserNotifications
 import CoreBluetooth
 import AppTrackingTransparency
 import Intents
+import HealthKit
 import os.log
 
 struct PermissionsCollector {
@@ -47,17 +48,12 @@ struct PermissionsCollector {
         items.append(DeviceInfoItem(
             key: "Contacts",
             value: cnAuthString(contactStatus),
-            availability: contactStatus == .authorized ? .available : .requiresPermission
+            availability: contactStatus == .authorized || contactStatus == .limited ? .available : .requiresPermission
         ))
 
         // Calendar
         let calendarStatus = EKEventStore.authorizationStatus(for: .event)
-        let calendarGranted: Bool
-        if #available(iOS 17.0, *) {
-            calendarGranted = calendarStatus == .fullAccess || calendarStatus == .authorized
-        } else {
-            calendarGranted = calendarStatus == .authorized
-        }
+        let calendarGranted = calendarStatus == .fullAccess
         items.append(DeviceInfoItem(
             key: "Calendar",
             value: ekAuthString(calendarStatus),
@@ -66,12 +62,7 @@ struct PermissionsCollector {
 
         // Reminders
         let reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
-        let reminderGranted: Bool
-        if #available(iOS 17.0, *) {
-            reminderGranted = reminderStatus == .fullAccess || reminderStatus == .authorized
-        } else {
-            reminderGranted = reminderStatus == .authorized
-        }
+        let reminderGranted = reminderStatus == .fullAccess
         items.append(DeviceInfoItem(
             key: "Reminders",
             value: ekAuthString(reminderStatus),
@@ -144,6 +135,34 @@ struct PermissionsCollector {
             availability: notifSettings.authorizationStatus == .authorized ? .available : .requiresPermission
         ))
 
+        // Notification detail settings
+        let alertSetting: String
+        switch notifSettings.alertSetting {
+        case .enabled: alertSetting = "Enabled"
+        case .disabled: alertSetting = "Disabled"
+        case .notSupported: alertSetting = "Not Supported"
+        @unknown default: alertSetting = "Unknown"
+        }
+        items.append(DeviceInfoItem(key: "Notification Alerts", value: alertSetting))
+
+        let soundSetting: String
+        switch notifSettings.soundSetting {
+        case .enabled: soundSetting = "Enabled"
+        case .disabled: soundSetting = "Disabled"
+        case .notSupported: soundSetting = "Not Supported"
+        @unknown default: soundSetting = "Unknown"
+        }
+        items.append(DeviceInfoItem(key: "Notification Sounds", value: soundSetting))
+
+        let badgeSetting: String
+        switch notifSettings.badgeSetting {
+        case .enabled: badgeSetting = "Enabled"
+        case .disabled: badgeSetting = "Disabled"
+        case .notSupported: badgeSetting = "Not Supported"
+        @unknown default: badgeSetting = "Unknown"
+        }
+        items.append(DeviceInfoItem(key: "Notification Badges", value: badgeSetting))
+
         // Bluetooth
         let btAuth = CBCentralManager.authorization
         let btString: String
@@ -192,6 +211,9 @@ struct PermissionsCollector {
             availability: siriStatus == .authorized ? .available : .requiresPermission
         ))
 
+        // HealthKit
+        items.append(DeviceInfoItem(key: "HealthKit Available", value: HKHealthStore.isHealthDataAvailable() ? "Yes" : "No"))
+
         logger.debug("Permissions collection complete: \(items.count) items")
 
         return DeviceInfoSection(
@@ -235,29 +257,19 @@ struct PermissionsCollector {
         case .restricted: return "Restricted"
         case .denied: return "Denied"
         case .authorized: return "Authorized"
+        case .limited: return "Limited Access"
         @unknown default: return "Unknown"
         }
     }
 
     private static func ekAuthString(_ status: EKAuthorizationStatus) -> String {
-        if #available(iOS 17.0, *) {
-            switch status {
-            case .notDetermined: return "Not Determined"
-            case .restricted: return "Restricted"
-            case .denied: return "Denied"
-            case .authorized: return "Authorized"
-            case .fullAccess: return "Full Access"
-            case .writeOnly: return "Write Only"
-            @unknown default: return "Unknown"
-            }
-        } else {
-            switch status {
-            case .notDetermined: return "Not Determined"
-            case .restricted: return "Restricted"
-            case .denied: return "Denied"
-            case .authorized: return "Authorized"
-            @unknown default: return "Unknown"
-            }
+        switch status {
+        case .notDetermined: return "Not Determined"
+        case .restricted: return "Restricted"
+        case .denied: return "Denied"
+        case .fullAccess: return "Full Access"
+        case .writeOnly: return "Write Only"
+        @unknown default: return "Unknown"
         }
     }
 }

@@ -35,6 +35,9 @@ struct ClipboardCollector {
             notes: "Total number of items currently on the clipboard."
         ))
 
+        items.append(DeviceInfoItem(key: "Clipboard Change Count", value: "\(pasteboard.changeCount)"))
+        items.append(DeviceInfoItem(key: "Clipboard Type Count", value: "\(pasteboard.types.count)", notes: "Number of data representations available"))
+
         logger.debug("Clipboard collection complete: \(items.count) items")
 
         return DeviceInfoSection(

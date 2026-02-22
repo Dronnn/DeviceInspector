@@ -88,6 +88,11 @@ struct GPUARCollector {
             notes: "Highest Apple GPU family supported. Higher families support more advanced features."
         ))
 
+        items.append(DeviceInfoItem(
+            key: "Unified Memory",
+            value: device.hasUnifiedMemory ? "Yes" : "No"
+        ))
+
         return items
     }
 
@@ -122,6 +127,18 @@ struct GPUARCollector {
             key: "AR Object Scanning",
             value: ARObjectScanningConfiguration.isSupported ? "Supported" : "Not Supported",
             notes: "Scans real-world 3D objects for later detection."
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "Scene Reconstruction",
+            value: ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) ? "Supported" : "Not Supported",
+            notes: "Indicates LiDAR scanner presence"
+        ))
+
+        items.append(DeviceInfoItem(
+            key: "Scene Depth",
+            value: ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) ? "Supported" : "Not Supported",
+            notes: "LiDAR-based depth sensing"
         ))
 
         return items

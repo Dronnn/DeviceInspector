@@ -91,6 +91,18 @@ struct CameraAudioCollector {
                     key: "\(prefix) — Torch",
                     value: device.hasTorch ? "Yes" : "No"
                 ))
+
+                items.append(DeviceInfoItem(key: "\(prefix) — Min Zoom", value: String(format: "%.1fx", device.minAvailableVideoZoomFactor)))
+                items.append(DeviceInfoItem(key: "\(prefix) — Max Zoom", value: String(format: "%.1fx", device.maxAvailableVideoZoomFactor)))
+
+                if let format = device.activeFormat as AVCaptureDevice.Format? {
+                    items.append(DeviceInfoItem(key: "\(prefix) — Field of View", value: String(format: "%.1f°", format.videoFieldOfView)))
+                }
+
+                items.append(DeviceInfoItem(key: "\(prefix) — Virtual Device", value: device.isVirtualDevice ? "Yes" : "No"))
+                if device.isVirtualDevice {
+                    items.append(DeviceInfoItem(key: "\(prefix) — Constituent Cameras", value: "\(device.constituentDevices.count)"))
+                }
             }
         }
 
@@ -190,7 +202,49 @@ struct CameraAudioCollector {
             notes: "No reliable public API exists for detecting the mute switch. This is a heuristic only."
         ))
 
+        let currentRoute = session.currentRoute
+        let outputNames = currentRoute.outputs.map { "\($0.portName) (\($0.portType.rawValue))" }
+        items.append(DeviceInfoItem(
+            key: "Audio Output Route",
+            value: outputNames.isEmpty ? "None" : outputNames.joined(separator: ", ")
+        ))
+
         return items
+    }
+
+    // MARK: - Media Codecs
+
+    static func collectMediaCodecs() -> DeviceInfoSection {
+        var items: [DeviceInfoItem] = []
+
+        let presets = AVAssetExportSession.allExportPresets()
+        items.append(DeviceInfoItem(key: "Export Presets Count", value: "\(presets.count)",
+            notes: "Number of available media export presets. Varies by device hardware tier."))
+
+        items.append(DeviceInfoItem(key: "Export Presets", value: presets.sorted().joined(separator: ", "),
+            notes: "Full list of available export presets. Different devices support different sets."))
+
+        // HEVC support
+        let supportsHEVC = presets.contains { $0.contains("HEVC") }
+        items.append(DeviceInfoItem(key: "HEVC (H.265) Support", value: supportsHEVC ? "Yes" : "No",
+            notes: "HEVC hardware encoding. Available on A10+ chips (iPhone 7 and later)."))
+
+        // ProRes support
+        let supportsProRes = presets.contains { $0.contains("ProRes") }
+        items.append(DeviceInfoItem(key: "ProRes Support", value: supportsProRes ? "Yes" : "No",
+            notes: "ProRes recording capability. Available only on iPhone 13 Pro and later Pro models."))
+
+        return DeviceInfoSection(
+            title: "Media Codecs",
+            icon: "film",
+            items: items,
+            explanation: """
+            Supported media codecs and export presets vary by device model and hardware \
+            generation. HEVC (H.265) requires an A10 chip or newer, while ProRes is limited \
+            to Pro-tier devices. The specific set of available presets reveals the device's \
+            hardware capabilities — a fingerprinting vector used by media-heavy applications.
+            """
+        )
     }
 
     private static func collectHaptics() -> [DeviceInfoItem] {

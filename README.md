@@ -9,7 +9,7 @@ No analytics, no tracking SDKs, no data leaves your device. Everything is collec
 
 ## Features
 
-- Collects device information across 23 categories
+- Collects device information across 27 categories
 - **Bluetooth device scanning** — discover nearby BLE peripherals with RSSI, advertisement data
 - **Local network discovery** — find devices via Bonjour (AirPlay, HomeKit, printers, SSH, etc.)
 - **"About This App" screen** — accessible via the info button (circle-i) in the toolbar; explains the app's purpose, data transparency philosophy, and links to the source code
@@ -54,6 +54,8 @@ No analytics, no tracking SDKs, no data leaves your device. Everything is collec
 - Max refresh rate (ProMotion)
 - Interface style (Dark/Light mode)
 - Display Zoom detection
+- Safe area insets (top/bottom/left/right)
+- Device shape inference (notch/Dynamic Island/home button)
 
 ### 5. Storage
 - Total disk space
@@ -63,6 +65,7 @@ No analytics, no tracking SDKs, no data leaves your device. Everything is collec
 
 ### 6. Network
 - IP addresses by interface (en0, pdp_ip0, etc.) with subnet masks and flags
+- MTU per network interface
 - WiFi SSID, BSSID (requires Location permission)
 - WiFi security type, signal strength (RSSI)
 - Carrier name, mobile country code, mobile network code
@@ -139,6 +142,8 @@ No analytics, no tracking SDKs, no data leaves your device. Everything is collec
 - Metric system preference
 - Preferred languages list
 - Timezone DST status, calendar identifier
+- Locale script, variant, collation identifier
+- Individual keyboard enumeration (UITextInputMode)
 
 ### 20. System Settings
 - 24-hour time format detection
@@ -158,6 +163,32 @@ No analytics, no tracking SDKs, no data leaves your device. Everything is collec
 ### 23. WiFi Extras
 - WiFi security type (WPA2/WPA3/Open/WEP)
 - Signal strength (RSSI in dBm)
+
+### 24. System Fonts
+- Font family enumeration (all installed font families)
+- Total font count across all families
+- Per-family font listing (detail sheet)
+- Classic fingerprinting vector (~5-8 bits of entropy)
+
+### 25. WebView Fingerprint
+- User-Agent string
+- navigator.platform, navigator.vendor
+- navigator.language, navigator.languages
+- hardwareConcurrency (logical CPU cores)
+- maxTouchPoints, cookieEnabled
+- The #1 web tracking vector — reveals browser-level device identity
+
+### 26. Speech Voices
+- Total installed TTS voices
+- Language count across all voices
+- Premium voice ratio (premium vs. standard)
+- Varies by device model and user downloads
+
+### 27. Media Codecs
+- Supported export presets (AVAssetExportSession)
+- HEVC/H.265 hardware support
+- ProRes codec support
+- Reveals hardware generation and media capabilities
 
 ## iOS Limitations & What's NOT Available
 
@@ -248,6 +279,7 @@ iOS enforces strict privacy boundaries. The following data **cannot** be accesse
 - **Wireless**: CoreNFC, CoreBluetooth, NearbyInteraction
 - **Graphics/AR**: Metal, ARKit
 - **Permissions**: Photos, Contacts, EventKit, Speech, UserNotifications, Intents
+- **Web**: WebKit (WKWebView navigator fingerprint)
 - **Network**: Network (NWPathMonitor), NetworkExtension (NEHotspotNetwork), CFNetwork
 
 ## Architecture
@@ -290,6 +322,8 @@ DeviceInspector/
 │   ├── ExtendedNetworkCollector.swift # Proxy, VPN, NWPathMonitor
 │   ├── LocaleCollector.swift         # Locale, currency, DST
 │   ├── ClipboardCollector.swift    # Clipboard metadata
+│   ├── FontCollector.swift              # System font enumeration
+│   ├── WebViewFingerprintCollector.swift # WebView/navigator fingerprint
 │   └── EnvironmentSecurityCollector.swift # Build/security environment
 ├── ViewModels/
 │   └── DeviceInspectorViewModel.swift # Main view model

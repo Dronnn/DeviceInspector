@@ -31,6 +31,21 @@ struct ItemExplanations {
             if key.hasSuffix("— Torch") {
                 return "Whether this camera can use its flash as a continuous flashlight (torch mode)."
             }
+            if key.contains("Min Zoom") {
+                return "The minimum optical zoom factor for this camera. 1.0x means no zoom-out capability."
+            }
+            if key.contains("Max Zoom") {
+                return "The maximum available zoom factor for this camera, combining optical and digital zoom."
+            }
+            if key.contains("Field of View") {
+                return "The horizontal field of view angle in degrees for this camera's active video format."
+            }
+            if key.contains("Virtual Device") {
+                return "Whether this is a virtual camera that combines multiple physical cameras (e.g., the dual or triple camera system)."
+            }
+            if key.contains("Constituent Cameras") {
+                return "The number of physical cameras that make up this virtual camera system."
+            }
         }
 
         // DNS Server dynamic keys (e.g. "DNS Server 1", "DNS Server 2")
@@ -127,6 +142,21 @@ struct ItemExplanations {
             return "Information about a network service discovered via Bonjour (mDNS/DNS-SD) on the local network."
         }
 
+        // Keyboard dynamic keys (e.g. "Keyboard 1", "Keyboard 2")
+        if key.hasPrefix("Keyboard ") && !key.contains("Count") {
+            return "Language identifier for this installed keyboard input mode. The combination of installed keyboards is a strong fingerprinting signal — it reveals languages the user actively uses."
+        }
+
+        // Voice dynamic keys (e.g. "Voice — Samantha")
+        if key.hasPrefix("Voice — ") {
+            return "A text-to-speech voice available on this device. The language, name, and quality level (Compact/Enhanced/Premium) vary by device and user downloads."
+        }
+
+        // Font family dynamic keys (e.g. "Family — Helvetica Neue")
+        if key.hasPrefix("Family — ") {
+            return "A font family installed on this device with all its available font faces. The set of installed font families varies by iOS version and configuration profiles. Font enumeration is a classic browser fingerprinting technique that works on iOS too."
+        }
+
         return nil
     }
 
@@ -170,6 +200,10 @@ struct ItemExplanations {
             "The local network hostname assigned to this device.",
         "Globally Unique String":
             "A randomly generated unique identifier. Changes every time it is requested — never the same twice.",
+        "Mac Catalyst App":
+            "Whether this app is running as a Mac Catalyst app — an iPad app adapted for macOS.",
+        "iOS App on Mac":
+            "Whether this app is an unmodified iOS app running on a Mac with Apple Silicon.",
 
         // MARK: UIDeviceCollector
 
@@ -222,6 +256,12 @@ struct ItemExplanations {
             "A numeric code identifying the CPU architecture (e.g. ARM64).",
         "CPU Subtype":
             "A numeric code identifying the specific CPU variant within the architecture family.",
+        "L1 Data Cache":
+            "Level 1 data cache size. The fastest, smallest CPU cache used for recently accessed data.",
+        "L1 Instruction Cache":
+            "Level 1 instruction cache size. Stores recently executed CPU instructions for fast access.",
+        "L2 Cache":
+            "Level 2 cache size. Larger but slower than L1, shared between CPU cores on Apple Silicon.",
 
         // MARK: DisplayCollector
 
@@ -313,6 +353,10 @@ struct ItemExplanations {
             "Whether the user has set up biometric authentication (Face ID or Touch ID) on this device.",
         "Screen Captured":
             "Whether the screen is currently being recorded, mirrored, or captured by another app.",
+        "Secure Enclave Available":
+            "Whether the device has a Secure Enclave — a hardware-isolated processor for cryptographic operations and key storage.",
+        "App Attest Supported":
+            "Whether the device supports App Attest, an Apple service that verifies your app's integrity to your server.",
 
         // MARK: SensorsCollector
 
@@ -338,6 +382,8 @@ struct ItemExplanations {
             "Whether the device can measure step cadence (steps per second).",
         "Motion Activity Recognition":
             "Whether the device can automatically detect the user's current activity — walking, running, cycling, driving, or stationary.",
+        "Headphone Motion":
+            "Whether headphone motion tracking is available. Used by AirPods Pro/Max for spatial audio head tracking.",
 
         // MARK: CameraAudioCollector
 
@@ -367,6 +413,8 @@ struct ItemExplanations {
             "Whether the device has a haptic engine (Taptic Engine) for touch feedback vibrations.",
         "Haptic Audio Supported":
             "Whether the haptic engine can also play audio alongside vibrations for richer tactile feedback.",
+        "Audio Output Route":
+            "The current audio output destination — shows speaker name and connection type (built-in speaker, Bluetooth, headphones, etc.).",
 
         // MARK: WirelessCollector
 
@@ -376,6 +424,8 @@ struct ItemExplanations {
             "The current Bluetooth permission status. Apps need authorization to communicate with Bluetooth accessories.",
         "Ultra Wideband (UWB)":
             "Whether the device has a U1 chip for Ultra Wideband, enabling precise spatial awareness and device location (used by AirTag and Precision Finding).",
+        "Bluetooth Power State":
+            "The current Bluetooth radio power state. Only detectable during active BLE scanning.",
 
         // MARK: GPUARCollector
 
@@ -403,6 +453,12 @@ struct ItemExplanations {
             "Whether the device can recognize and track known 2D images in the camera view.",
         "AR Object Scanning":
             "Whether the device can scan and recognize 3D objects for AR experiences.",
+        "Unified Memory":
+            "Whether the GPU shares memory with the CPU. All Apple Silicon devices use unified memory architecture.",
+        "Scene Reconstruction":
+            "Whether the device supports real-time 3D mesh reconstruction of the environment, which requires a LiDAR scanner.",
+        "Scene Depth":
+            "Whether the device supports LiDAR-based scene depth sensing for accurate distance measurement.",
 
         // MARK: PermissionsCollector
 
@@ -432,6 +488,14 @@ struct ItemExplanations {
             "App Tracking Transparency status. Controls whether the app can track the user's activity across other companies' apps and websites.",
         "Siri":
             "Current permission status for Siri integration. Required for the app to donate shortcuts and intents to Siri.",
+        "Notification Alerts":
+            "Whether the app is allowed to show visual notification alerts (banners, popups).",
+        "Notification Sounds":
+            "Whether the app is allowed to play sounds for notifications.",
+        "Notification Badges":
+            "Whether the app is allowed to show badge counts on the app icon.",
+        "HealthKit Available":
+            "Whether HealthKit health and fitness data is available on this device. Not available on all devices (e.g., some iPads).",
 
         // MARK: AccessibilityCollector
 
@@ -502,6 +566,8 @@ struct ItemExplanations {
             "The file path for temporary cached data. The system may delete these files when storage is low.",
         "Temp Directory":
             "The file path for temporary files that are not needed between app launches.",
+        "Minimum OS Version":
+            "The lowest iOS version this app is designed to run on, as declared in the app bundle.",
 
         // MARK: LocaleCollector
 
@@ -598,6 +664,10 @@ struct ItemExplanations {
             "Whether the device is in Dark Mode or Light Mode, as set in Settings > Display & Brightness.",
         "Display Zoom":
             "Whether Display Zoom is enabled (Settings > Display & Brightness > Display Zoom). Zoomed mode makes everything on screen larger at the cost of fitting less content.",
+        "Native Resolution":
+            "The actual pixel resolution of the display hardware, which may differ from the logical resolution used for layout.",
+        "Available Display Modes":
+            "The number of display modes the screen supports. Most iOS devices have just one mode.",
 
         // MARK: LocaleCollector — System Settings
 
@@ -614,6 +684,10 @@ struct ItemExplanations {
 
         "Clipboard Items Count":
             "The total number of distinct items currently stored on the system clipboard. Multiple items can exist when copying rich content.",
+        "Clipboard Change Count":
+            "How many times the system clipboard has been modified since last device reboot. Metadata only — does not reveal clipboard contents.",
+        "Clipboard Type Count":
+            "The number of different data representations currently on the clipboard (e.g., text, HTML, image). Metadata only.",
 
         // MARK: CameraAudioCollector — Extended
 
@@ -637,6 +711,8 @@ struct ItemExplanations {
             "Whether the app was compiled in Debug mode (for development, with extra logging and assertions) or Release mode (optimized for production).",
         "Jailbreak Indicators":
             "Results of checking for common jailbreak artifacts — Cydia.app, APT directories, writable root filesystem. These are basic heuristic checks and may not detect sophisticated jailbreaks.",
+        "Data Protection":
+            "The file encryption level applied to the app's documents directory. 'Complete' means files are encrypted when the device is locked.",
 
         // MARK: NetworkCollector — WiFi RSSI
 
@@ -652,5 +728,127 @@ struct ItemExplanations {
 
         "No Network Devices":
             "No network services have been discovered yet. Tap the Scan button to start a 5-second Bonjour discovery on the local network. Requires local network permission.",
+
+        // MARK: LocationCollector
+
+        "Location Services Enabled":
+            "Whether location services are turned on globally in the device's Settings. This is a system-wide toggle, not per-app.",
+        "Heading Available":
+            "Whether the device has a magnetometer (compass) that can provide heading information. Available on most modern iPhones.",
+        "Significant Location Monitoring":
+            "Whether the device supports significant-change location monitoring, which uses cell towers and WiFi for power-efficient location tracking.",
+        "Ranging Available":
+            "Whether the device supports iBeacon ranging, used to detect proximity to Bluetooth Low Energy beacons.",
+        "Authorization Status":
+            "The current location permission level for this app. Can be Not Determined, When In Use, Always, Denied, or Restricted.",
+        "Accuracy Authorization":
+            "Whether the user granted full accuracy or reduced accuracy location. Reduced accuracy provides an approximate location within a larger area.",
+        "Latitude":
+            "Geographic latitude in decimal degrees. Positive values indicate north of the equator, negative values indicate south.",
+        "Longitude":
+            "Geographic longitude in decimal degrees. Positive values indicate east of the Prime Meridian, negative values indicate west.",
+        "Altitude":
+            "Height above sea level in meters, as determined by the device's location hardware. Accuracy depends on the positioning method used.",
+        "Horizontal Accuracy":
+            "The radius of uncertainty for the location in meters. A smaller value means the location is more precise. A negative value indicates the coordinates are invalid.",
+        "Vertical Accuracy":
+            "The accuracy of the altitude value in meters. A smaller value means the altitude is more precise. A negative value indicates the altitude is invalid.",
+        "Speed":
+            "The instantaneous speed of the device in meters per second. Only available when the device is moving. A negative value means speed data is unavailable.",
+        "Speed Accuracy":
+            "The accuracy of the speed value in meters per second. A smaller value indicates more precise speed measurement.",
+        "Course":
+            "The direction the device is moving, measured in degrees relative to true north. 0° is north, 90° is east, 180° is south, 270° is west.",
+        "Course Accuracy":
+            "The accuracy of the course value in degrees. A smaller value indicates a more precise direction measurement.",
+        "Floor Level":
+            "The logical floor of the building where the device is located. Uses indoor positioning data when available. Not supported in all buildings.",
+        "Location Timestamp":
+            "When this location measurement was taken. Useful for determining how fresh the location data is.",
+
+        // MARK: TrackingCollector
+
+        "Tracking Authorization Status":
+            "The current App Tracking Transparency (ATT) permission level. Controls whether the app can access the IDFA and track activity across other apps and websites.",
+        "Device Tracking Restriction":
+            "Indicates whether tracking is restricted at the device level by parental controls, Mobile Device Management (MDM), or other system policies. When restricted, apps cannot request tracking permission.",
+        "IDFA (Advertising Identifier)":
+            "The Identifier for Advertisers — a unique, resettable ID assigned to every Apple device. Used by advertisers for ad targeting and attribution. Returns all zeros when tracking is not authorized. Can be reset by the user in Settings.",
+        "IDFA Is Zeroed":
+            "Whether the Identifier for Advertisers returns all zeros (00000000-0000-0000-0000-000000000000). When tracking is not authorized, Apple returns a zeroed IDFA to prevent cross-app tracking.",
+        "Advertising Tracking Enabled":
+            "A deprecated property from iOS 14. Previously indicated whether the user had enabled Limit Ad Tracking in Settings. Replaced by ATTrackingManager in iOS 14.5+.",
+        "AdServices Attribution":
+            "Whether Apple's AdServices framework can provide an attribution token. This token allows measuring the effectiveness of Apple Search Ads campaigns without requiring ATT permission.",
+
+        // MARK: FontCollector
+
+        "Font Families":
+            "Number of font families installed on this device. Different iOS versions ship different font sets. Custom or enterprise-installed fonts make the device highly identifiable. Font enumeration is one of the top browser fingerprinting techniques.",
+        "Total Fonts":
+            "Total number of individual font faces across all families. Includes all weights, styles, and variants. This count varies by iOS version and installed profiles, contributing 5-8 bits of fingerprint entropy.",
+
+        // MARK: WebViewFingerprintCollector
+
+        "User-Agent String":
+            "The full User-Agent string that every website sees. Contains iOS version, device model, and WebKit engine version. This is the #1 web tracking vector — websites use it to identify your exact device and OS without any permission.",
+        "Platform":
+            "The navigator.platform value reported to websites. On iOS devices this is typically 'iPhone' or 'iPad'. Combined with User-Agent, narrows down the device type.",
+        "Language":
+            "The primary language reported to websites via navigator.language. Reveals the user's preferred language setting, which trackers combine with other signals for identification.",
+        "Accept Languages":
+            "Full list of languages the browser accepts, in preference order. A user with 'en-US, de-DE, ru-RU' is far more identifiable than one with just 'en-US'. Each additional language exponentially increases fingerprint uniqueness.",
+        "Hardware Concurrency":
+            "Number of logical CPU cores reported to websites. Reveals the device's processing capability and can narrow down the exact device model.",
+        "Max Touch Points":
+            "Maximum number of simultaneous touch points supported. On iOS typically 5. Varies across device types and is used in cross-platform fingerprinting.",
+        "Cookies Enabled":
+            "Whether cookies are enabled in the WebView. Almost always true on iOS, but disabling cookies is itself a distinguishing signal.",
+        "Vendor":
+            "The browser vendor string. On iOS this is always 'Apple Computer, Inc.' but is included in fingerprint calculations by tracking scripts.",
+
+        // MARK: DisplayCollector — Safe Area
+
+        "Safe Area Top":
+            "Top safe area inset in points. Reveals the exact device generation: 0 pt (classic iPhone), ~20 pt (pre-notch), ~47 pt (notch models), ~59 pt (Dynamic Island). Combined with screen bounds, this is a near-unique device model identifier.",
+        "Safe Area Bottom":
+            "Bottom safe area inset in points. Non-zero on devices with Home indicator (no physical Home button). Distinguishes Face ID devices from Touch ID devices.",
+        "Safe Area Left":
+            "Left safe area inset in points. Typically 0 in portrait orientation. Non-zero in landscape on notch/Dynamic Island devices, revealing device generation.",
+        "Safe Area Right":
+            "Right safe area inset in points. Mirrors left inset behavior. Non-zero in landscape on notch/Dynamic Island devices.",
+        "Device Shape":
+            "Inferred device form factor based on safe area insets: Dynamic Island (iPhone 14 Pro+), Notch (iPhone X–14), or Classic (SE, older). This single value reveals the device generation with high confidence.",
+
+        // MARK: LocaleCollector — Keyboards & Script
+
+        "Keyboard Count":
+            "Number of installed keyboard input modes. A user with multiple keyboards (e.g., English + Russian + Arabic) is highly distinguishable. Most users have 1-2 keyboards; 3+ is rare and adds significant fingerprint entropy.",
+        "Locale Script":
+            "Writing script variant of the current locale (e.g., 'Hans' for Simplified Chinese vs 'Hant' for Traditional). Narrows down the user's cultural background and region.",
+        "Locale Variant":
+            "Regional variant of the locale. Most users don't have a variant set, so any non-nil value is a strong distinguishing signal.",
+        "Collation":
+            "String sorting order preference. 'Default' is most common, but custom collation settings (like phonebook ordering for German) add fingerprint entropy.",
+
+        // MARK: SensorsCollector — Speech Voices
+
+        "Total Voices":
+            "Number of text-to-speech voices available on this device. Varies by device model, storage capacity (compact vs downloaded premium voices), and user-installed voice packs. A fingerprinting vector most users are unaware of.",
+        "Voice Languages":
+            "Number of unique languages supported by installed TTS voices. Reveals the breadth of language support on this device, which varies by region and storage.",
+        "Premium Voices":
+            "Number of Enhanced or Premium quality TTS voices. These are larger, higher-quality voices that must be downloaded. The count reveals which voice packs the user has installed.",
+
+        // MARK: CameraAudioCollector — Codecs & Presets
+
+        "Export Presets Count":
+            "Number of available media export presets. Varies by device hardware generation — newer devices support more presets including HEVC and ProRes variants.",
+        "Export Presets":
+            "Full list of available media export preset identifiers. The specific combination reveals the device's hardware capabilities and generation.",
+        "HEVC (H.265) Support":
+            "Whether the device supports HEVC (H.265) hardware encoding. Available on A10 chip and newer (iPhone 7+). Reveals the minimum hardware generation.",
+        "ProRes Support":
+            "Whether the device supports ProRes video recording. Limited to Pro-tier devices (iPhone 13 Pro and later). A strong signal of the exact device model.",
     ]
 }

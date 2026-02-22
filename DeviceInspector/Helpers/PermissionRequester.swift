@@ -69,38 +69,20 @@ struct PermissionRequester {
 
         case "Calendar":
             let store = EKEventStore()
-            if #available(iOS 17.0, *) {
-                do {
-                    let granted = try await store.requestFullAccessToEvents()
-                    return granted ? "Full Access" : "Denied"
-                } catch {
-                    return "Denied"
-                }
-            } else {
-                do {
-                    let granted = try await store.requestAccess(to: .event)
-                    return granted ? "Authorized" : "Denied"
-                } catch {
-                    return "Denied"
-                }
+            do {
+                let granted = try await store.requestFullAccessToEvents()
+                return granted ? "Full Access" : "Denied"
+            } catch {
+                return "Denied"
             }
 
         case "Reminders":
             let store = EKEventStore()
-            if #available(iOS 17.0, *) {
-                do {
-                    let granted = try await store.requestFullAccessToReminders()
-                    return granted ? "Full Access" : "Denied"
-                } catch {
-                    return "Denied"
-                }
-            } else {
-                do {
-                    let granted = try await store.requestAccess(to: .reminder)
-                    return granted ? "Authorized" : "Denied"
-                } catch {
-                    return "Denied"
-                }
+            do {
+                let granted = try await store.requestFullAccessToReminders()
+                return granted ? "Full Access" : "Denied"
+            } catch {
+                return "Denied"
             }
 
         case "Location":

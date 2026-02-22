@@ -177,6 +177,10 @@ struct ProcessInfoCollector {
             ))
         }
 
+        // Mac Catalyst / iOS on Mac
+        items.append(DeviceInfoItem(key: "Mac Catalyst App", value: ProcessInfo.processInfo.isMacCatalystApp ? "Yes" : "No"))
+        items.append(DeviceInfoItem(key: "iOS App on Mac", value: ProcessInfo.processInfo.isiOSAppOnMac ? "Yes" : "No"))
+
         logger.debug("ProcessInfo collection complete: \(items.count) items")
 
         return DeviceInfoSection(

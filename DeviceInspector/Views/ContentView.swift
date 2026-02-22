@@ -17,26 +17,52 @@ struct ContentView: View {
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var showAbout = false
+    @Environment(\.scenePhase) private var scenePhase
+
+    private var locationStatusText: String {
+        switch viewModel.locationStatus {
+        case .notDetermined: return "Not Determined"
+        case .restricted: return "Restricted"
+        case .denied: return "Denied"
+        case .authorizedAlways: return "Always"
+        case .authorizedWhenInUse: return "When In Use"
+        @unknown default: return "Unknown"
+        }
+    }
+
+    private var locationStatusColor: Color {
+        switch viewModel.locationStatus {
+        case .authorizedAlways, .authorizedWhenInUse: return .green
+        case .denied, .restricted: return .red
+        case .notDetermined: return .orange
+        @unknown default: return .secondary
+        }
+    }
+
+    private var trackingStatusText: String {
+        switch viewModel.attStatus {
+        case .notDetermined: return "Not Determined"
+        case .restricted: return "Restricted"
+        case .denied: return "Denied"
+        case .authorized: return "Authorized"
+        @unknown default: return "Unknown"
+        }
+    }
+
+    private var trackingStatusColor: Color {
+        switch viewModel.attStatus {
+        case .authorized: return .green
+        case .denied, .restricted: return .red
+        case .notDetermined: return .orange
+        @unknown default: return .secondary
+        }
+    }
+
     @ViewBuilder
     private var headerSection: some View {
         Section {
             Toggle("Privacy Mode", isOn: $viewModel.privacyMode)
                 .tint(.orange)
-
-            PermissionStatusView(
-                locationStatus: viewModel.locationStatus,
-                attStatus: viewModel.attStatus,
-                bluetoothStatus: bluetoothManager.authorizationStatus,
-                onRequestLocation: {
-                    locationManager.requestWhenInUseAuthorization()
-                },
-                onRequestATT: {
-                    await viewModel.requestATTPermission()
-                },
-                onRequestBluetooth: {
-                    bluetoothManager.requestAuthorization()
-                }
-            )
         }
     }
 
@@ -99,7 +125,9 @@ struct ContentView: View {
                                     onScan: { viewModel.scanBluetoothDevices() },
                                     detailItems: viewModel.bluetoothDetailItems,
                                     detailTitle: "Bluetooth Devices",
-                                    deviceCount: viewModel.bluetoothDeviceCount
+                                    deviceCount: viewModel.bluetoothDeviceCount,
+                                    permissionStatus: bluetoothManager.authorizationStatus,
+                                    onRequestPermission: { bluetoothManager.requestAuthorization() }
                                 )
                             } else if section.title == "Network Devices" {
                                 ScanSectionView(
@@ -113,6 +141,60 @@ struct ContentView: View {
                                     detailItems: viewModel.networkDetailItems,
                                     detailTitle: "Network Devices",
                                     deviceCount: viewModel.networkServiceCount
+                                )
+                            } else if section.title == "Location" {
+                                PermissionSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    permissionIcon: "location",
+                                    permissionLabel: "Location",
+                                    permissionStatusText: locationStatusText,
+                                    permissionStatusColor: locationStatusColor,
+                                    isRequestable: viewModel.locationStatus == .notDetermined,
+                                    isDenied: viewModel.locationStatus == .denied || viewModel.locationStatus == .restricted,
+                                    onRequestPermission: { locationManager.requestWhenInUseAuthorization() }
+                                )
+                            } else if section.title == "Tracking" {
+                                PermissionSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    permissionIcon: "hand.raised",
+                                    permissionLabel: "Tracking",
+                                    permissionStatusText: trackingStatusText,
+                                    permissionStatusColor: trackingStatusColor,
+                                    isRequestable: viewModel.attStatus == .notDetermined,
+                                    isDenied: viewModel.attStatus == .denied || viewModel.attStatus == .restricted,
+                                    onRequestPermission: { Task { await viewModel.requestATTPermission() } }
+                                )
+                            } else if section.title == "System Fonts" {
+                                DetailListSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    detailItems: viewModel.fontDetailItems,
+                                    detailTitle: "System Fonts",
+                                    detailCount: viewModel.fontCount,
+                                    detailCountLabel: "fonts"
+                                )
+                            } else if section.title == "Speech Voices" {
+                                DetailListSectionView(
+                                    section: section,
+                                    privacyMode: viewModel.privacyMode,
+                                    collapseAllSignal: collapseAllSignal,
+                                    expandAllSignal: expandAllSignal,
+                                    expandSectionID: expandSectionID,
+                                    detailItems: viewModel.speechVoiceDetailItems,
+                                    detailTitle: "Speech Voices",
+                                    detailCount: viewModel.speechVoiceCount,
+                                    detailCountLabel: "voices"
                                 )
                             } else {
                                 SectionView(
@@ -202,17 +284,46 @@ struct ContentView: View {
                     }
                     .task {
                         viewModel.locationStatus = locationManager.authorizationStatus
+                        viewModel.attStatus = ATTrackingManager.trackingAuthorizationStatus
+                        viewModel.accuracyAuthorization = locationManager.accuracyAuthorization
+                        viewModel.currentLocation = locationManager.currentLocation
                         viewModel.bluetoothManager = bluetoothManager
                         viewModel.networkDiscoveryManager = networkDiscoveryManager
                         await viewModel.refresh()
                     }
-                    .onChange(of: locationManager.authorizationStatus) { newStatus in
+                    .onChange(of: locationManager.authorizationStatus) { _, newStatus in
                         viewModel.locationStatus = newStatus
+                        viewModel.accuracyAuthorization = locationManager.accuracyAuthorization
+                        viewModel.currentLocation = locationManager.currentLocation
                         Task {
                             await viewModel.refresh()
                         }
                     }
-                    .onChange(of: bluetoothManager.authorizationStatus) { _ in
+                    .onChange(of: bluetoothManager.authorizationStatus) {
+                        Task {
+                            await viewModel.refresh()
+                        }
+                    }
+                    .onChange(of: viewModel.attStatus) {
+                        Task {
+                            await viewModel.refresh()
+                        }
+                    }
+                    .onChange(of: scenePhase) { _, newPhase in
+                        if newPhase == .active {
+                            viewModel.attStatus = ATTrackingManager.trackingAuthorizationStatus
+                            viewModel.locationStatus = locationManager.authorizationStatus
+                            viewModel.accuracyAuthorization = locationManager.accuracyAuthorization
+                            viewModel.currentLocation = locationManager.currentLocation
+                            Task {
+                                await viewModel.refresh()
+                            }
+                        }
+                    }
+                    .onReceive(locationManager.$currentLocation) { newLocation in
+                        guard newLocation != nil else { return }
+                        viewModel.currentLocation = newLocation
+                        viewModel.accuracyAuthorization = locationManager.accuracyAuthorization
                         Task {
                             await viewModel.refresh()
                         }
